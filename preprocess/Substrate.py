@@ -86,7 +86,7 @@ def dump_dictionary(dictionary, filename):
 with open('./data/test.json', 'r') as infile :
     Kcat_data = json.load(infile)
     
-compounds = list()
+compound_fingerprints = list()
 adjacencies = list()
 
 for data in Kcat_data :
@@ -97,13 +97,13 @@ for data in Kcat_data :
     i_jbond_dict = create_ijbonddict(mol) # Get graph structure
     fingerprints = extract_fingerprints(atoms, i_jbond_dict, radius) # Extract fingerprints
 
-    compounds.append(fingerprints)
+    compound_fingerprints.append(fingerprints)
 
     adjacency = create_adjacency(mol)
     adjacencies.append(adjacency)
 
-np.save('./data/compounds.npy', np.array(compounds, dtype=object))  
-np.save('./data/adjacencies.npy', np.array(adjacencies, dtype=object))
+np.save('./data/compound_fingerprints.npy', compound_fingerprints)  
+np.save('./data/adjacencies.npy', adjacencies)
 
 dump_dictionary(atom_dict, './data/atom_dict.pickle')
 dump_dictionary(bond_dict, './data/bond_dict.pickle')

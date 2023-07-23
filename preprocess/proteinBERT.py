@@ -18,5 +18,4 @@ for data in Kcat_data :
     global_representations.append(global_representation)
     print(len(global_representations) , '/' , len(Kcat_data) , end = '\n')
 
-
-np.save('./data/global_representations.npy', np.array(global_representations, dtype=object))
+np.save('./data/global_representations.npy', global_representations)
