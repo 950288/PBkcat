@@ -7,16 +7,20 @@ class KcatPrediction(nn.Module):
     def __init__(self):
         super().__init__()
         self.embed_fingerprint = nn.Embedding(len_fingerprint, dim)
-        self.W_gnn = nn.ModuleList([nn.Linear(dim, dim)
-            for _ in range(layer_gnn)])
-        self.W_out = nn.ModuleList([nn.Linear(2*dim, 2*dim)
-            for _ in range(layer_output)])
+        self.W_gnn = nn.ModuleList([
+            nn.Linear(dim, dim)
+            for _ in range(layer_gnn)
+        ])
+        self.W_out = nn.ModuleList([
+            nn.Linear(2*dim, 2*dim)                        
+            for _ in range(layer_output)
+        ])
         self.W_interaction = nn.Linear(2*dim, 1)
 
     def gnn(self, xs, A, layer):
         for i in range(layer):
             hs = torch.relu(self.W_gnn[i](xs))
-            xs = xs + torch.matmul(A, hs)
+            xs = xs + torch.matmul(A.float(), hs)
         return torch.unsqueeze(torch.mean(xs, 0), 0)
 
     def forward(self,inputs):
@@ -27,7 +31,8 @@ class KcatPrediction(nn.Module):
         fingerprint_vectors = self.embed_fingerprint(fingerprints)
         compound_vector = self.gnn(fingerprint_vectors, adjacency, layer_gnn)
 
-        """Concatenate the above two vectors and output the interaction."""
+        """Concatenate the two vector and output the interaction."""
+        print(compound_vector.shape, protein_vector.shape)
         cat_vector = torch.cat((compound_vector, protein_vector), 1)
         for j in range(layer_output):
             cat_vector = torch.relu(self.W_out[j](cat_vector))

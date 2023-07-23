@@ -72,12 +72,8 @@ def extract_fingerprints(atoms, i_jbond_dict, radius):
     return np.array(fingerprints)
 
 def create_adjacency(mol):
-    """Create a adjacency matrix considering the radius."""
     adjacency = Chem.GetAdjacencyMatrix(mol)
-    for _ in range(radius - 1):
-        adjacency += np.dot(adjacency, adjacency)
-    adjacency[adjacency > 0] = 1
-    return adjacency
+    return np.array(adjacency)
 
 def dump_dictionary(dictionary, filename):
     with open(filename, 'wb') as file:
