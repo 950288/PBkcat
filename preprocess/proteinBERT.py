@@ -12,7 +12,7 @@ model = pretrained_model_generator.create_model(seq_len = 512)
 
 global_representations = []
 
-with open('./test.json', 'r') as infile :
+with open('./data/test.json', 'r') as infile :
     Kcat_data = json.load(infile)
 
 for data in Kcat_data :
