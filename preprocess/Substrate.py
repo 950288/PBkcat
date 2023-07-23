@@ -105,10 +105,10 @@ for data in Kcat_data :
 np.save('./data/compounds.npy', np.array(compounds, dtype=object))  
 np.save('./data/adjacencies.npy', np.array(adjacencies, dtype=object))
 
-dump_dictionary(atom_dict, './data/atom_dict..pickle')
-dump_dictionary(bond_dict, './data/bond_dict..pickle')
-dump_dictionary(fingerprint_dict, './data/fingerprint_dict..pickle')
-dump_dictionary(edge_dict, './data/edge_dict..pickle')
+dump_dictionary(atom_dict, './data/atom_dict.pickle')
+dump_dictionary(bond_dict, './data/bond_dict.pickle')
+dump_dictionary(fingerprint_dict, './data/fingerprint_dict.pickle')
+dump_dictionary(edge_dict, './data/edge_dict.pickle')
 
     
 
