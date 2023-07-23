@@ -1,6 +1,8 @@
 from proteinbert import load_pretrained_model
+import numpy as np
 import pickle
 import json
+
 # from proteinbert.conv_and_global_attention_model import get_model_with_hidden_layers_as_outputs
 
 pretrained_model_generator, input_encoder = load_pretrained_model(local_model_dump_dir = ".\\preprocess\\" , local_model_dump_file_name = 'epoch_92400_sample_23500000.pkl')
@@ -10,7 +12,7 @@ model = pretrained_model_generator.create_model(seq_len = 512)
 
 global_representations = []
 
-with open('./Kcat_combination_0918.json', 'r') as infile :
+with open('./test.json', 'r') as infile :
     Kcat_data = json.load(infile)
 
 for data in Kcat_data :
@@ -26,5 +28,4 @@ for data in Kcat_data :
 # with open('local_representations.pkl', 'wb') as f:
 #     pickle.dump(local_representations, f)
 
-with open('global_representations.pkl', 'wb') as f:
-  pickle.dump(global_representations, f)
+np.save('./data/global_representations.npy', global_representations)
