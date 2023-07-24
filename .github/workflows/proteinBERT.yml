@@ -22,9 +22,9 @@ jobs:
       run: |
         pip install -r dependencies.txt
         wget -P preprocess/ ftp://ftp.cs.huji.ac.il/users/nadavb/protein_bert/epoch_92400_sample_23500000.pkl
-    - name: run preprocess/proteinBERT.py
+    - name: run proteinBERT.py
       run: |
-        python proteinBERT.py
+        python preprocess/proteinBERT.py
     - name: Upload results
       uses: actions/upload-artifact@v2
       with:
