@@ -17,12 +17,15 @@ with open('./data/Kcat_combination_0918.json', 'r') as infile :
 
 for data in Kcat_data :
     input_ids = input_encoder.encode_X(data['Sequence'] , 512)
+    # input_ids = input_ids[:512]
     _ , global_representation = model.predict(input_ids)
-    (global_representation_a,_) = global_representation.shape
-    global_representation_c = 512-global_representation_a
-    global_representation_1 = np.pad(global_representation,((0,global_representation_c),(0,0)),'constant',constant_values = (0,0))
-    global_representations.append(global_representation_1)
-    print(global_representation_1)
+    # (global_representation_a,_) = global_representation.shape
+    # global_representation_c = 512-global_representation_a
+    # global_representation_1 = np.pad(global_representation,((0,global_representation_c),(0,0)),'constant',constant_values = (0,0))
+    # global_representations.append(global_representation_1)
+    # print(global_representation_1)
+    global_representations.append(global_representation)
+    
     print(len(global_representations) , '/' , len(Kcat_data) , end = '\n')
 
 np.save('./data/global_representations.npy', global_representations)
