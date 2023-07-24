@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import pickle
+import math
 import numpy as np
 
 class KcatPrediction(nn.Module):
@@ -33,7 +34,7 @@ class KcatPrediction(nn.Module):
 
         """Concatenate the two vector and output the interaction."""
         print(compound_vector.shape, protein_vector.shape)
-        cat_vector = torch.cat((compound_vector, protein_vector), 1)
+        cat_vector = torch.cat((compound_vector, compound_vector), 1)
         for j in range(layer_output):
             cat_vector = torch.relu(self.W_out[j](cat_vector))
         interaction = self.W_interaction(cat_vector)
@@ -76,7 +77,7 @@ if __name__ == '__main__':
 
     logits = model(dataset[0])
 
-    print(logits)
+    print('%.4f' %math.pow(2,logits))
 
 
         
