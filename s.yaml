@@ -1,0 +1,29 @@
+# run proteinBERT.py
+name: proteinBERT
+
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    
+    - name: install dependencies
+      run: pip install -r dependencies.txt
+
+    - name: run proteinBERT.py
+      run: python proteinBERT.py
+
+    - name: Upload results
+      uses: actions/upload-artifact@v2
+      with:
+        name: results
+        path: ./data/global_representations.npy
+
