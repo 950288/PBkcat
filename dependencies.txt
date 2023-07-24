@@ -1,6 +1,1 @@
 protein-bert
-numpy
-json
-torch
-collections
-rdkit
