@@ -20,8 +20,8 @@ jobs:
         echo $CONDA/bin >> $GITHUB_PATH
     - name: Install dependencies
       run: |
-        pip install -r dependencies.txt
         wget -P preprocess/ ftp://ftp.cs.huji.ac.il/users/nadavb/protein_bert/epoch_92400_sample_23500000.pkl
+        pip install -r dependencies.txt
     - name: run proteinBERT.py
       run: |
         python preprocess/proteinBERT.py
