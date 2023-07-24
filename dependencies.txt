@@ -1,4 +1,4 @@
-proteinbert
+protein-bert
 numpy
 json
 torch
