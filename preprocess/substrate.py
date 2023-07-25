@@ -87,14 +87,16 @@ def save_array(array, filename):
     with open(filename, 'wb') as file:
         pickle.dump(array, file)
 
-with open('./data/test.json', 'r') as infile :
+with open('./data/Kcat_combination_0918.json', 'r') as infile :
     Kcat_data = json.load(infile)
     
 compound_fingerprints = list()
 adjacencies = list()
+Kcats = list()
 
 for data in tqdm.tqdm(Kcat_data) :
     smiles = data['Smiles']
+    Kcats.append(float(data['Value']))
     mol = Chem.AddHs(Chem.MolFromSmiles(smiles)) # Add hydrogens
     atoms = create_atoms(mol) # Get atom features
 
@@ -106,7 +108,7 @@ for data in tqdm.tqdm(Kcat_data) :
     adjacency = create_adjacency(mol)
     adjacencies.append(adjacency)
 
-
+save_array(Kcats, './data/Kcats.pickle')
 save_array(compound_fingerprints, './data/compound_fingerprints.pickle')
 save_array(adjacencies, './data/adjacencies.pickle')
 dump_dictionary(atom_dict, './data/atom_dict.pickle')

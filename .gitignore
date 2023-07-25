@@ -1,3 +1,5 @@
 preprocess/epoch_92400_sample_23500000.pkl
 data/*.npy
 data/*.pickle
+model/__pycache__/model.cpython-311.pyc
+model/output/Kcat
