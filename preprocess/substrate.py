@@ -77,13 +77,17 @@ def extract_fingerprints(atoms, i_jbond_dict, radius):
 
 def create_adjacency(mol):
     adjacency = Chem.GetAdjacencyMatrix(mol)
-    return np.array(adjacency)
+    return adjacency
 
 def dump_dictionary(dictionary, filename):
     with open(filename, 'wb') as file:
         pickle.dump(dict(dictionary), file)
 
-with open('./data/Kcat_combination_0918.json', 'r') as infile :
+def save_array(array, filename):
+    with open(filename, 'wb') as file:
+        pickle.dump(array, file)
+
+with open('./data/test.json', 'r') as infile :
     Kcat_data = json.load(infile)
     
 compound_fingerprints = list()
@@ -102,14 +106,15 @@ for data in tqdm.tqdm(Kcat_data) :
     adjacency = create_adjacency(mol)
     adjacencies.append(adjacency)
 
-np.save('./data/compound_fingerprints', compound_fingerprints)  
-np.save('./data/adjacencies', adjacencies)
 
+save_array(compound_fingerprints, './data/compound_fingerprints.pickle')
+save_array(adjacencies, './data/adjacencies.pickle')
 dump_dictionary(atom_dict, './data/atom_dict.pickle')
 dump_dictionary(bond_dict, './data/bond_dict.pickle')
 dump_dictionary(fingerprint_dict, './data/fingerprint_dict.pickle')
 dump_dictionary(edge_dict, './data/edge_dict.pickle')
 
+print('compound_fingerprints, adjacencies, atom_dict, bond_dict, fingerprint_dict, edge_dict saved successfully!')
     
 
 

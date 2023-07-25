@@ -4,9 +4,16 @@ import pickle
 import math
 import numpy as np
 
+
+
 class KcatPrediction(nn.Module):
-    def __init__(self):
+    def __init__(self , args):
         super().__init__()
+        dim = args['dim']
+        layer_output = args['layer_output']
+        layer_gnn = args['layer_gnn']
+        layer_dnn = args['layer_dnn']
+        len_fingerprint = args['len_fingerprint']
         self.embed_fingerprint = nn.Embedding(len_fingerprint, dim)
         self.W_gnn = nn.ModuleList([
             nn.Linear(dim, dim)
@@ -45,7 +52,7 @@ class KcatPrediction(nn.Module):
         # protein_vector = self.conv2(protein_vector)
         # protein_vector = self.pooling(protein_vector)
         protein_vector = torch.from_numpy(protein_vector)
-        protein_flatten = protein_vector.view(1, 512*8943)
+        protein_flatten = torch.flatten(protein_vector) 
         # self.dnn = nn.Linear(512*8943, dim)
         protein_flatten = self.dnn(protein_flatten) 
         
@@ -61,31 +68,20 @@ def load_pickle(file_name):
     with open(file_name, 'rb') as f:
         return pickle.load(f)
     
-def load_tensor(file_name):
-    return torch.from_numpy(np.load(file_name + '.npy', allow_pickle=True))
+def split_dataset(dataset, ratio):
+    n = int(ratio * len(dataset))
+    dataset_1, dataset_2 = dataset[:n], dataset[n:]
+    return dataset_1, dataset_2
+
+# class Tester(object):
+
+
 
 if __name__ == '__main__':
 
-    dim = 10
-    layer_output=3
-    layer_gnn=3
-    layer_dnn=3
+    
 
-    dir_input = './data/'
-    compound_fingerprints = load_tensor(dir_input + 'compound_fingerprints')
-    adjacencies = load_tensor(dir_input + 'adjacencies')
-    proteins = load_tensor(dir_input + 'global_representations')
 
-    fingerprint_dict = load_pickle(dir_input + 'fingerprint_dict.pickle')
-    len_fingerprint = len(fingerprint_dict)
-
-    """CPU or GPU."""
-    if torch.cuda.is_available():
-        device = torch.device('cuda')
-        print('The code uses GPU...')
-    else:
-        device = torch.device('cpu')
-        print('The code uses CPU!!!')
     
     model = KcatPrediction().to(device)
 
