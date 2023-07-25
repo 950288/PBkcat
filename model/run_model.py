@@ -12,6 +12,10 @@ class KcatPrediction(nn.Module):
             nn.Linear(dim, dim)
             for _ in range(layer_gnn)
         ])
+        # self.conv1 = torch.nn.Conv2d(1, 10, kernel_size = 5)
+        # self.conv2 = torch.nn.Conv2d(10, 20, kernel_size = 5)
+        # self.pooling = torch.nn.MaxPool2d(2)
+        self.dnn = nn.Linear(512*8943, dim)
         self.W_out = nn.ModuleList([
             nn.Linear(2*dim, 2*dim)                        
             for _ in range(layer_output)
@@ -32,9 +36,21 @@ class KcatPrediction(nn.Module):
         fingerprint_vectors = self.embed_fingerprint(fingerprints)
         compound_vector = self.gnn(fingerprint_vectors, adjacency, layer_gnn)
 
+        """Protein vector with CNN."""
+        protein_vector = protein_vector[:512]
+        protein_vector = np.pad(protein_vector,((0,512-len(protein_vector)),(0,0)),'constant',constant_values = (0,0))
+        # protein_vector = torch.from_numpy(protein_vector)
+        # protein_vector = self.conv1(protein_vector)
+        # protein_vector = self.pooling(protein_vector)
+        # protein_vector = self.conv2(protein_vector)
+        # protein_vector = self.pooling(protein_vector)
+        protein_vector = torch.from_numpy(protein_vector)
+        protein_flatten = protein_vector.view(1, 512*8943)
+        # self.dnn = nn.Linear(512*8943, dim)
+        protein_flatten = self.dnn(protein_flatten) 
+        
         """Concatenate the two vector and output the interaction."""
-        print(compound_vector.shape, protein_vector.shape)
-        cat_vector = torch.cat((compound_vector, compound_vector), 1)
+        cat_vector = torch.cat((compound_vector, compound_flatten), 1)
         for j in range(layer_output):
             cat_vector = torch.relu(self.W_out[j](cat_vector))
         interaction = self.W_interaction(cat_vector)
@@ -53,7 +69,7 @@ if __name__ == '__main__':
     dim = 10
     layer_output=3
     layer_gnn=3
-    layer_cnn=3
+    layer_dnn=3
 
     dir_input = './data/'
     compound_fingerprints = load_tensor(dir_input + 'compound_fingerprints')
