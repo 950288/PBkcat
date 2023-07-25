@@ -3,6 +3,7 @@ from rdkit import Chem
 from collections import defaultdict
 import numpy as np
 import pickle
+import tqdm
 
 atom_dict = defaultdict(lambda: len(atom_dict))
 bond_dict = defaultdict(lambda: len(bond_dict))
@@ -35,6 +36,8 @@ def create_ijbonddict(mol):
         i_jbond_dict[j].append((i, bond))
     return i_jbond_dict
 
+
+
 def extract_fingerprints(atoms, i_jbond_dict, radius):
     """Extract the r-radius subgraphs (i.e., fingerprints)
     from a molecular graph using Weisfeiler-Lehman algorithm."""
@@ -54,20 +57,21 @@ def extract_fingerprints(atoms, i_jbond_dict, radius):
             (i.e., r-radius subgraphs or fingerprints)."""
             fingerprints = []
             for i, j_edge in i_jedge_dict.items():
+                # consider edge as bond
                 neighbors = [(nodes[j], edge) for j, edge in j_edge]
                 fingerprint = (nodes[i], tuple(sorted(neighbors)))
                 fingerprints.append(fingerprint_dict[fingerprint])
-            nodes = fingerprints
+            # # nodes = fingerprints
 
-            """Also update each edge ID considering two nodes
-            on its both sides."""
-            _i_jedge_dict = defaultdict(lambda: [])
-            for i, j_edge in i_jedge_dict.items():
-                for j, edge in j_edge:
-                    both_side = tuple(sorted((nodes[i], nodes[j])))
-                    edge = edge_dict[(both_side, edge)]
-                    _i_jedge_dict[i].append((j, edge))
-            i_jedge_dict = _i_jedge_dict
+            # """Also update each edge ID considering two nodes
+            # on its both sides."""
+            # _i_jedge_dict = defaultdict(lambda: [])
+            # for i, j_edge in i_jedge_dict.items():
+            #     for j, edge in j_edge:
+            #         both_side = tuple(sorted((nodes[i], nodes[j])))
+            #         edge = edge_dict[(both_side, edge)]
+            #         _i_jedge_dict[i].append((j, edge))
+            # i_jedge_dict = _i_jedge_dict
 
     return np.array(fingerprints)
 
@@ -79,13 +83,13 @@ def dump_dictionary(dictionary, filename):
     with open(filename, 'wb') as file:
         pickle.dump(dict(dictionary), file)
 
-with open('./data/test.json', 'r') as infile :
+with open('./data/Kcat_combination_0918.json', 'r') as infile :
     Kcat_data = json.load(infile)
     
 compound_fingerprints = list()
 adjacencies = list()
 
-for data in Kcat_data :
+for data in tqdm.tqdm(Kcat_data) :
     smiles = data['Smiles']
     mol = Chem.AddHs(Chem.MolFromSmiles(smiles)) # Add hydrogens
     atoms = create_atoms(mol) # Get atom features
@@ -98,8 +102,8 @@ for data in Kcat_data :
     adjacency = create_adjacency(mol)
     adjacencies.append(adjacency)
 
-np.save('./data/compound_fingerprints.npy', compound_fingerprints)  
-np.save('./data/adjacencies.npy', adjacencies)
+np.save('./data/compound_fingerprints', compound_fingerprints)  
+np.save('./data/adjacencies', adjacencies)
 
 dump_dictionary(atom_dict, './data/atom_dict.pickle')
 dump_dictionary(bond_dict, './data/bond_dict.pickle')
