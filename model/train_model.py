@@ -29,9 +29,10 @@ if __name__ == "__main__":
     adjacencies = model.load_pickle(dir_input + 'adjacencies.pickle')
     proteins = model.load_pickle(dir_input + 'global_representations.pickle')
     fingerprint_dict = model.load_pickle(dir_input + 'fingerprint_dict.pickle')
+    args['len_fingerprint'] = len(fingerprint_dict)
+    
     Kcat = model.load_pickle(dir_input + 'Kcats.pickle')
     Kcat = torch.from_numpy(np.array(Kcat))
-    args['len_fingerprint'] = len(fingerprint_dict)
 
     dataset = list(zip(compound_fingerprints, adjacencies, proteins, Kcat))
     print('The lenth of dataset: %d' % len(dataset))
