@@ -16,7 +16,7 @@ with open('./data/Kcat_combination_0918.json', 'r') as infile :
     Kcat_data = json.load(infile)
 
 with open('./data/global_representations.pickle', 'a') as infile :
-    if len(infile) > 0 :
+    if infile.tell() > 0 :
         global_representations = pickle.load(infile)
 
 len_global_representations = len(global_representations)
