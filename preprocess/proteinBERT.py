@@ -11,6 +11,7 @@ pretrained_model_generator, input_encoder = load_pretrained_model(local_model_du
 model = pretrained_model_generator.create_model(seq_len = 16)
 
 global_representations = list()
+local_representations = list()
 
 with open('./data/Kcat_combination_0918.json', 'r') as infile :
     Kcat_data = json.load(infile)
@@ -25,10 +26,11 @@ def save_array(array, filename):
 
 for i , data in enumerate(Kcat_data) :
     input_ids = input_encoder.encode_X(data['Sequence'] , 16)
-    _ , global_representation = model.predict(input_ids)
-    global_representations.append(global_representation)
+    local_representation , global_representation = model.predict(input_ids)
+    # global_representations.append(global_representation)
+    local_representations.append(local_representation)
     if i % 100 == 0 :
-        print(len(global_representations) , '/' , len(Kcat_data) , end = '\n')
+        print(i + 1 , '/' , len(Kcat_data) , end = '\n')
 
 save_array(global_representations, './data/global_representations.pickle')
 
