@@ -8,27 +8,28 @@ import json
 
 pretrained_model_generator, input_encoder = load_pretrained_model(local_model_dump_dir = "./preprocess" , local_model_dump_file_name = 'epoch_92400_sample_23500000.pkl')
 
-model = pretrained_model_generator.create_model(seq_len = 128)
+model = pretrained_model_generator.create_model(seq_len = 16)
 
-with open('./data/Kcat_combination_0918.json', 'rb+') as infile :
+global_representations = list()
+
+with open('./data/Kcat_combination_0918.json', 'r') as infile :
     Kcat_data = json.load(infile)
 
-try :
-    with open('./data/global_representations.pickle', 'wb') as infile :
-        f.truncate(0)
-except :
-    pass
+def dump_dictionary(dictionary, filename):
+    with open(filename, 'wb') as file:
+        pickle.dump(dict(dictionary), file)
 
-def save(data, filename):
-    with open(filename, 'ab') as file:
-        pickle.dump(data, file)
+def save_array(array, filename):
+    with open(filename, 'wb') as file:
+        pickle.dump(array, file)
 
-len_Kcat_data = len(Kcat_data)
 for i , data in enumerate(Kcat_data) :
-    input_ids = input_encoder.encode_X(data['Sequence'] , 512)
+    input_ids = input_encoder.encode_X(data['Sequence'] , 16)
     _ , global_representation = model.predict(input_ids)
-    # print(global_representation.shape)
-    save(global_representation , './data/global_representations.pickle')
-    print(i + 1 , '/' , len_Kcat_data , end = '\n')
+    global_representations.append(global_representation)
+    if i % 100 == 0 :
+        print(len(global_representations) , '/' , len(Kcat_data) , end = '\n')
+
+save_array(global_representations, './data/global_representations.pickle')
 
 print('global_representations saved successfully!')
