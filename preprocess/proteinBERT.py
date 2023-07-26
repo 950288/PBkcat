@@ -12,32 +12,36 @@ model = pretrained_model_generator.create_model(seq_len = 512)
 
 global_representations = list()
 
-with open('./data/Kcat_combination_0918.json', 'r') as infile :
+with open('./data/Kcat_combination_0918.json', 'rb+') as infile :
     Kcat_data = json.load(infile)
 
-with open('./data/global_representations.pickle', 'a') as infile :
-    if infile.tell() > 0 :
-        global_representations = pickle.load(infile)
+len_global_representations = 0
+try :
+    with open('./data/global_representations.pickle', 'rb') as infile :
+        len_global_representations = len(pickle.load(infile))
+finally :
 
-len_global_representations = len(global_representations)
+    print('the length of global_representations is ' , len_global_representations)
 
+    def save_array(array, filename):
+        with open(filename, 'ab') as file:
+            pickle.dump(array, file)
+            print('global_representations saved successfully!')
+        with open('./data/global_representations.pickle', 'rb+') as infile :
+            print('the length of global_representations is ' , len(pickle.load(infile)))
 
-def save_array(array, filename):
-    with open(filename, 'a') as file:
-        pickle.dump(array, file)
+    len_Kcat_data = len(Kcat_data)
+    global_representations = list()
+    for i , data in enumerate(Kcat_data[len_global_representations:]) :
+        input_ids = input_encoder.encode_X(data['Sequence'] , 512)
+        _ , global_representation = model.predict(input_ids)
+        global_representations.append(global_representation)
+        print(len_global_representations + i + 1 , '/' , len_Kcat_data , end = '\n')
+        if len(global_representations) % 1 == 0 :
+            save_array(global_representations , './data/global_representations.pickle')
+            print('global_representations saved successfully!')
+            global_representations = []
 
+    save_array(global_representations , './data/global_representations.pickle')
 
-len_Kcat_data = len(Kcat_data)
-global_representations = []
-for data in Kcat_data[len_global_representations:] :
-    input_ids = input_encoder.encode_X(data['Sequence'] , 512)
-    _ , global_representation = model.predict(input_ids)
-    global_representations.append(global_representation)
-    print(len(global_representations) , '/' , len_Kcat_data , end = '\n')
-    if len(global_representations) % 100 == 0 :
-        save_array(global_representations , './data/global_representations.pickle')
-        global_representations = []
-
-save_array(global_representations , './data/global_representations.pickle')
-
-print('global_representations saved successfully!')
+    print('global_representations saved successfully!')
