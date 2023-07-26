@@ -32,6 +32,7 @@ for i , data in enumerate(Kcat_data) :
     if i % 100 == 0 :
         print(i + 1 , '/' , len(Kcat_data) , end = '\n')
 
-save_array(global_representations, './data/global_representations.pickle')
+# save_array(global_representations, './data/global_representations.pickle')
+save_array(local_representations, './data/local_representations.pickle')
 
 print('global_representations saved successfully!')
