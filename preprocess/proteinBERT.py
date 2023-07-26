@@ -15,20 +15,28 @@ global_representations = list()
 with open('./data/Kcat_combination_0918.json', 'r') as infile :
     Kcat_data = json.load(infile)
 
-def dump_dictionary(dictionary, filename):
-    with open(filename, 'wb') as file:
-        pickle.dump(dict(dictionary), file)
+with open('./data/global_representations.pickle', 'rb') as infile :
+    global_representations = pickle.load(infile)
+
+len_global_representations = len(global_representations)
+
 
 def save_array(array, filename):
-    with open(filename, 'wb') as file:
+    with open(filename, 'a') as file:
         pickle.dump(array, file)
 
-for data in Kcat_data :
+
+len_Kcat_data = len(Kcat_data)
+global_representations = []
+for data in Kcat_data[len_global_representations:] :
     input_ids = input_encoder.encode_X(data['Sequence'] , 512)
     _ , global_representation = model.predict(input_ids)
     global_representations.append(global_representation)
-    print(len(global_representations) , '/' , len(Kcat_data) , end = '\n')
+    print(len(global_representations) , '/' , len_Kcat_data , end = '\n')
+    if len(global_representations) % 100 == 0 :
+        save_array(global_representations , './data/global_representations.pickle')
+        global_representations = []
 
-save_array(global_representations, './data/global_representations.pickle')
+save_array(global_representations , './data/global_representations.pickle')
 
 print('global_representations saved successfully!')
