@@ -8,7 +8,6 @@ import json
 
 pretrained_model_generator, input_encoder = load_pretrained_model(local_model_dump_dir = "./preprocess" , local_model_dump_file_name = 'epoch_92400_sample_23500000.pkl')
 
-
 global_representations = list()
 local_representations = list()
 
@@ -33,11 +32,10 @@ max_len += 2
 
 model = pretrained_model_generator.create_model(max_len)
 
-input_ids = input_encoder.encode_X(sequences, max_len)
-
 step = 16
-for i in range(0, len(input_ids), step):
-    input_ids_ = input_ids[i:i+step]
+for i in range(0, len(sequences), step):
+    sequences_ = sequences[i:i+step]
+    input_ids = input_encoder.encode_X(sequences_, max_len)
     local_representations_ , global_representations_ = model.predict(input_ids_, batch_size=16)
     if local_representations:
         local_representations = np.concatenate((local_representations, local_representations_), axis=0)
@@ -45,7 +43,6 @@ for i in range(0, len(input_ids), step):
     else:
         local_representations = local_representations_
         global_representations = global_representations_
-    
 
 print(local_representations.shape, global_representations.shape)
 save_array(global_representations, './data/global_representations.pickle')
