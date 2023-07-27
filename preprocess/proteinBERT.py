@@ -37,7 +37,7 @@ for i in range(0, len(sequences), step):
     print(i, '/' , len(sequences))
     sequences_ = sequences[i:i+step]
     input_ids = input_encoder.encode_X(sequences_, max_len)
-    # local_representations_ , global_representations_ = model.predict(input_ids, batch_size=16)
+    _ , global_representations_ = model.predict(input_ids, batch_size=16)
     if len(local_representations):
         # local_representations = np.concatenate((local_representations, local_representations_), axis=0)
         global_representations = np.concatenate((global_representations, global_representations_), axis=0)
