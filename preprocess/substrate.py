@@ -56,22 +56,14 @@ def extract_fingerprints(atoms, i_jbond_dict, radius):
             """Update each node ID considering its neighboring nodes and edges
             (i.e., r-radius subgraphs or fingerprints)."""
             fingerprints = []
-            for i, j_edge in i_jedge_dict.items():
-                # consider edge as bond
-                neighbors = [(nodes[j], edge) for j, edge in j_edge]
-                fingerprint = (nodes[i], tuple(sorted(neighbors)))
+            for i in range(len(nodes)):
+                neighbors = i_jedge_dict.get(i, []) 
+                if not neighbors:
+                    fingerprint = (nodes[i], ())  # empty tuple
+                else:
+                    fingerprint = (nodes[i], tuple(sorted(neighbors)))
+                
                 fingerprints.append(fingerprint_dict[fingerprint])
-            # # nodes = fingerprints
-
-            # """Also update each edge ID considering two nodes
-            # on its both sides."""
-            # _i_jedge_dict = defaultdict(lambda: [])
-            # for i, j_edge in i_jedge_dict.items():
-            #     for j, edge in j_edge:
-            #         both_side = tuple(sorted((nodes[i], nodes[j])))
-            #         edge = edge_dict[(both_side, edge)]
-            #         _i_jedge_dict[i].append((j, edge))
-            # i_jedge_dict = _i_jedge_dict
 
     return np.array(fingerprints)
 
@@ -102,7 +94,6 @@ for data in tqdm.tqdm(Kcat_data) :
 
     i_jbond_dict = create_ijbonddict(mol) # Get graph structure
     fingerprints = extract_fingerprints(atoms, i_jbond_dict, radius) # Extract fingerprints
-
     compound_fingerprints.append(fingerprints)
 
     adjacency = create_adjacency(mol)
