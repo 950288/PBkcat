@@ -11,7 +11,7 @@ pretrained_model_generator, input_encoder = load_pretrained_model(local_model_du
 global_representations = list()
 local_representations = list()
 
-with open('./data/Kcat_combination_0918.json', 'r') as infile :
+with open('./data/test2.json', 'r') as infile :
     Kcat_data = json.load(infile)
 
 def dump_dictionary(dictionary, filename):
@@ -32,12 +32,13 @@ max_len += 2
 
 model = pretrained_model_generator.create_model(max_len)
 
-step = 16
+step = 100
 for i in range(0, len(sequences), step):
+    print(i, '/' , len(sequences))
     sequences_ = sequences[i:i+step]
     input_ids = input_encoder.encode_X(sequences_, max_len)
-    local_representations_ , global_representations_ = model.predict(input_ids_, batch_size=16)
-    if local_representations:
+    local_representations_ , global_representations_ = model.predict(input_ids, batch_size=16)
+    if len(local_representations):
         local_representations = np.concatenate((local_representations, local_representations_), axis=0)
         global_representations = np.concatenate((global_representations, global_representations_), axis=0)
     else:
