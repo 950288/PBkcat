@@ -49,7 +49,7 @@ if __name__ == "__main__":
         print('The code uses CPU !!!')
 
     # torch.manual_seed(1234)
-    Kcatpredictor = model.KcatPrediction(args).to(device)
+    Kcatpredictor = model.KcatPrediction(args, device).to(device)
     trainer = model.Trainer(Kcatpredictor)
     tester = model.Tester(Kcatpredictor)
 

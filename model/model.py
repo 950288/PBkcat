@@ -8,10 +8,10 @@ import torch.nn.functional as F
 from sklearn.metrics import mean_squared_error,r2_score
 import tqdm
 
-
 class KcatPrediction(nn.Module):
-    def __init__(self , args):
+    def __init__(self, args, device):
         super().__init__()
+        self.device = device
         self.dim = args['dim']
         self.layer_output = args['layer_output']
         self.layer_gnn = args['layer_gnn']
@@ -44,9 +44,11 @@ class KcatPrediction(nn.Module):
 
         fingerprints, adjacency, protein_vector = inputs
 
-        fingerprints = torch.LongTensor(fingerprints)
-        adjacency = torch.FloatTensor(adjacency)
-        protein_vector = torch.FloatTensor(protein_vector)
+
+
+        fingerprints = torch.LongTensor(fingerprints).to(self.device)
+        adjacency = torch.FloatTensor(adjacency).to(self.device)
+        protein_vector = torch.FloatTensor(protein_vector).to(self.device)
 
         """Compound vector with GNN."""
         fingerprint_vectors = self.embed_fingerprint(fingerprints)
