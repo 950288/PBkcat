@@ -17,7 +17,7 @@ if __name__ == "__main__":
         "layer_dnn" : 3,
         "lr" : 1e-3,
         "weight_decay": 1e-6,
-        "iteration" : 100
+        "epoch" : 100
     }
 
     file_model = './model/output/' + model_name
@@ -61,8 +61,8 @@ if __name__ == "__main__":
     print('Training...')
     MAEs = []
     start = timeit.default_timer()
-    for epoch in range(0, args["iteration"]):
-        print('Epoch: %d / %d' % (epoch + 1, args["iteration"]))
+    for epoch in range(0, args["epoch"]):
+        print('Epoch: %d / %d' % (epoch + 1, args["epoch"]))
         LOSS_train, RMSE_train, R2_train = trainer.train(dataset_train)
         LOSS_test, RMSE_test, R2_test = tester.test(dataset_dev)
 

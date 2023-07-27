@@ -27,7 +27,7 @@ class KcatPrediction(nn.Module):
         # self.conv1 = torch.nn.Conv2d(1, 10, kernel_size = 5)
         # self.conv2 = torch.nn.Conv2d(10, 20, kernel_size = 5)
         # self.pooling = torch.nn.MaxPool2d(2)
-        self.dnn = nn.Linear(512*8943, self.dim)
+        self.dnn = nn.Linear(8943, self.dim)
         self.W_out = nn.ModuleList([
             nn.Linear(2*self.dim, 2*self.dim)                        
             for _ in range(self.layer_output)
@@ -53,16 +53,18 @@ class KcatPrediction(nn.Module):
         compound_vector = self.gnn(fingerprint_vectors, adjacency, self.layer_gnn)
 
         """Protein vector with CNN."""
-        protein_vector = protein_vector[:512]
-        protein_vector = np.pad(protein_vector,((0,512-len(protein_vector)),(0,0)),'constant',constant_values = (0,0))
         # protein_vector = torch.from_numpy(protein_vector)
         # protein_vector = self.conv1(protein_vector)
         # protein_vector = self.pooling(protein_vector)
         # protein_vector = self.conv2(protein_vector)
         # protein_vector = self.pooling(protein_vector)
-        protein_vector = torch.from_numpy(protein_vector)
-        protein_flatten = torch.flatten(protein_vector) 
-        # self.dnn = nn.Linear(512*8943, dim)
+        # protein_vector = torch.from_numpy(protein_vector)
+        # protein_flatten = torch.flatten(protein_vector) 
+
+        protein_flatten = protein_vector
+        
+        # print(protein_flatten.shape)
+
         protein_flatten = self.dnn(protein_flatten) 
         protein_flatten = torch.unsqueeze(protein_flatten, 0)
 
