@@ -37,7 +37,6 @@ class KcatPrediction(nn.Module):
     def gnn(self, xs, A, layer):
         for i in range(layer):
             hs = torch.relu(self.W_gnn[i](xs))
-            print(hs.shape, A.shape)
             xs = xs + torch.matmul(A.float(), hs)
         return torch.unsqueeze(torch.mean(xs, 0), 0)
 
@@ -95,16 +94,16 @@ class Trainer(object):
         loss_total, trainCorrect, trainPredict = 0, [], [] 
         for data in tqdm.tqdm(dataset):
             self.optimizer.zero_grad()
-            predicted = self.model(data[:3]).to(self.model.device)
-            loss = F.mse_loss(predicted[0][0].to(torch.float32), data[3].to(torch.float32))
+            predicted = self.model(data[:3])
+            loss = F.mse_loss(predicted[0][0].to(torch.float32), data[3].to(torch.float32).to(self.model.device))
             loss_total += loss
             loss.backward()
             self.optimizer.step()
             trainCorrect.append(data[3].to(torch.float32))
             trainPredict.append(predicted[0][0].to(torch.float32))
 
-        trainCorrect = torch.stack(trainCorrect).detach().numpy()
-        trainPredict = torch.stack(trainPredict).detach().numpy()
+        trainCorrect = torch.stack(trainCorrect).detach().cpu().numpy()
+        trainPredict = torch.stack(trainPredict).detach().cpu().numpy()
         rmse_train = np.sqrt(mean_squared_error(trainCorrect, trainPredict))
         r2_train = r2_score(trainCorrect, trainPredict)
         print('Train RMSE: %.4f' %rmse_train)
@@ -118,13 +117,13 @@ class Tester(object):
         loss_total, testCorrect, testPredict = 0, [], [] 
         for data in tqdm.tqdm(dataset):
             predicted = self.model(data[:3])
-            loss = F.mse_loss(predicted[0][0].to(torch.float32), data[3].to(torch.float32))
+            loss = F.mse_loss(predicted[0][0].to(torch.float32), data[3].to(torch.float32).to(self.model.device))
             loss_total += loss
             testCorrect.append(data[3].to(torch.float32))
             testPredict.append(predicted[0][0].to(torch.float32))
 
-        testCorrect = torch.stack(testCorrect).detach().numpy()
-        testPredict = torch.stack(testPredict).detach().numpy()
+        testCorrect = torch.stack(testCorrect).detach().cpu().numpy()
+        testPredict = torch.stack(testPredict).detach().cpu().numpy()
         rmse_test = np.sqrt(mean_squared_error(testCorrect, testPredict))
         r2_test = r2_score(testCorrect, testPredict)
         print('Test RMSE: %.4f' %rmse_test)
