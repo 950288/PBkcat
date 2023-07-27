@@ -94,7 +94,7 @@ class Trainer(object):
         trainPredict = torch.stack(trainPredict).detach().cpu().numpy()
         rmse_train = np.sqrt(mean_squared_error(trainCorrect, trainPredict))
         r2_train = r2_score(trainCorrect, trainPredict)
-        print('Test RMSE: %.4f , R2: %.4f' %(rmse_test, r2_test))
+        print('Test RMSE: %.4f , R2: %.4f' %(rmse_test, r2_train))
         return loss_total, rmse_train, r2_train
 
 class Tester(object):
