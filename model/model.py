@@ -42,28 +42,16 @@ class KcatPrediction(nn.Module):
 
     def forward(self,inputs):
 
-        fingerprints, adjacency, protein_vector = inputs
+        fingerprints, adjacency, protein_flatten = inputs
         fingerprints = torch.LongTensor(fingerprints).to(self.device)
         adjacency = torch.FloatTensor(adjacency).to(self.device)
-        protein_vector = torch.FloatTensor(protein_vector).to(self.device)
+        protein_flatten = torch.FloatTensor(protein_flatten).to(self.device)
 
         """Compound vector with GNN."""
         fingerprint_vectors = self.embed_fingerprint(fingerprints)
         compound_vector = self.gnn(fingerprint_vectors, adjacency, self.layer_gnn)
 
-        """Protein vector with CNN."""
-        # protein_vector = torch.from_numpy(protein_vector)
-        # protein_vector = self.conv1(protein_vector)
-        # protein_vector = self.pooling(protein_vector)
-        # protein_vector = self.conv2(protein_vector)
-        # protein_vector = self.pooling(protein_vector)
-        # protein_vector = torch.from_numpy(protein_vector)
-        # protein_flatten = torch.flatten(protein_vector) 
-
-        protein_flatten = protein_vector
-        
-        # print(protein_flatten.shape)
-
+        """Protein vector with DNN."""
         protein_flatten = self.dnn(protein_flatten) 
         protein_flatten = torch.unsqueeze(protein_flatten, 0)
 
@@ -106,7 +94,7 @@ class Trainer(object):
         trainPredict = torch.stack(trainPredict).detach().cpu().numpy()
         rmse_train = np.sqrt(mean_squared_error(trainCorrect, trainPredict))
         r2_train = r2_score(trainCorrect, trainPredict)
-        print('Train RMSE: %.4f' %rmse_train)
+        print('Test RMSE: %.4f , R2: %.4f' %(rmse_test, r2_test))
         return loss_total, rmse_train, r2_train
 
 class Tester(object):
@@ -126,7 +114,7 @@ class Tester(object):
         testPredict = torch.stack(testPredict).detach().cpu().numpy()
         rmse_test = np.sqrt(mean_squared_error(testCorrect, testPredict))
         r2_test = r2_score(testCorrect, testPredict)
-        print('Test RMSE: %.4f' %rmse_test)
+        print('Test RMSE: %.4f , R2: %.4f' %(rmse_test, r2_test))
         return loss_total, rmse_test, r2_test
 
 
