@@ -1,1 +1,1 @@
-{"dim": 10, "layer_output": 3, "layer_gnn": 3, "layer_dnn": 3, "lr": 0.001, "weight_decay": 1e-06, "iteration": 100, "len_fingerprint": 51}
+{"dim": 10, "layer_output": 3, "layer_gnn": 3, "layer_dnn": 3, "lr": 0.001, "weight_decay": 1e-06, "epoch": 100, "len_fingerprint": 51}

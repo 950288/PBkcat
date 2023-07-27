@@ -37,15 +37,13 @@ class KcatPrediction(nn.Module):
     def gnn(self, xs, A, layer):
         for i in range(layer):
             hs = torch.relu(self.W_gnn[i](xs))
+            print(hs.shape, A.shape)
             xs = xs + torch.matmul(A.float(), hs)
         return torch.unsqueeze(torch.mean(xs, 0), 0)
 
     def forward(self,inputs):
 
         fingerprints, adjacency, protein_vector = inputs
-
-
-
         fingerprints = torch.LongTensor(fingerprints).to(self.device)
         adjacency = torch.FloatTensor(adjacency).to(self.device)
         protein_vector = torch.FloatTensor(protein_vector).to(self.device)
@@ -97,7 +95,7 @@ class Trainer(object):
         loss_total, trainCorrect, trainPredict = 0, [], [] 
         for data in tqdm.tqdm(dataset):
             self.optimizer.zero_grad()
-            predicted = self.model(data[:3])
+            predicted = self.model(data[:3]).to(self.model.device)
             loss = F.mse_loss(predicted[0][0].to(torch.float32), data[3].to(torch.float32))
             loss_total += loss
             loss.backward()
