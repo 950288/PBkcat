@@ -32,7 +32,7 @@ if __name__ == "__main__":
     args['len_fingerprint'] = len(fingerprint_dict)
     
     Kcat = model.load_pickle(dir_input + 'Kcats.pickle')
-    Kcat = torch.from_numpy(np.array(Kcat))
+    Kcat = torch.LongTensor(Kcat)
 
     dataset = list(zip(compound_fingerprints, adjacencies, proteins, Kcat))
     print('The lenth of dataset: %d' % len(dataset))
