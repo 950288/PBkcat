@@ -80,11 +80,12 @@ class Trainer(object):
 
     def train(self, dataset):
         loss_total, trainCorrect, trainPredict = 0, [], [] 
+        self.model.train()
         for data in tqdm.tqdm(dataset):
             self.optimizer.zero_grad()
             predicted = self.model(data[:3])
             loss = F.mse_loss(predicted[0][0].to(torch.float32), data[3].to(torch.float32).to(self.model.device))
-            loss_total += loss
+            loss_total += loss.item()
             loss.backward()
             self.optimizer.step()
             trainCorrect.append(data[3].to(torch.float32))
@@ -104,10 +105,11 @@ class Tester(object):
 
     def test(self, dataset):
         loss_total, testCorrect, testPredict = 0, [], [] 
+        self.model.eval()
         for data in tqdm.tqdm(dataset):
             predicted = self.model(data[:3])
             loss = F.mse_loss(predicted[0][0].to(torch.float32), data[3].to(torch.float32).to(self.model.device))
-            loss_total += loss
+            loss_total += loss.item()
             testCorrect.append(data[3].to(torch.float32))
             testPredict.append(predicted[0][0].to(torch.float32))
 
