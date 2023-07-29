@@ -95,6 +95,7 @@ class Trainer(object):
         rmse_train = np.sqrt(mean_squared_error(trainCorrect, trainPredict))
         r2_train = r2_score(trainCorrect, trainPredict)
         print('Train RMSE: %.4f , R2: %.4f' %(rmse_train, r2_train))
+        torch.cuda.empty_cache()
         return loss_total, rmse_train, r2_train
 
 class Tester(object):
@@ -115,6 +116,7 @@ class Tester(object):
         rmse_test = np.sqrt(mean_squared_error(testCorrect, testPredict))
         r2_test = r2_score(testCorrect, testPredict)
         print('Test RMSE: %.4f , R2: %.4f' %(rmse_test, r2_test))
+        torch.cuda.empty_cache()
         return loss_total, rmse_test, r2_test
 
 

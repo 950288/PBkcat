@@ -69,7 +69,7 @@ if __name__ == "__main__":
         end = timeit.default_timer()
         time = end - start
         MAE = [epoch, time, LOSS_train, RMSE_train, R2_train, 
-                            LOSS_test, RMSE_test, R2_test, R2_test]
+                            LOSS_test,  RMSE_test,  R2_test]
         MAEs.append(MAE)
 
     """Save the trained model."""
