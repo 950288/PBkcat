@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import pickle
 import math
+import random
 import numpy as np
 import torch.optim as optim
 import torch.nn.functional as F
@@ -80,6 +81,7 @@ class Trainer(object):
 
     def train(self, dataset):
         loss_total, trainCorrect, trainPredict = 0, [], [] 
+        random.shuffle(dataset)        
         self.model.train()
         for data in tqdm.tqdm(dataset):
             self.optimizer.zero_grad()
