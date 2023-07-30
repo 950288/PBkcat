@@ -12,22 +12,23 @@ class KcatPrediction(nn.Module):
     def __init__(self, args, device):
         super().__init__()
         self.device = device
-        self.dim = args['dim']
-        self.layer_output = args['layer_output']
-        self.layer_gnn = args['layer_gnn']
-        self.layer_dnn = args['layer_dnn']
+        self.dim: int = args['dim']
+        self.layer_output: int = args['layer_output']
+        self.layer_gnn: int = args['layer_gnn']
+        self.layer_dnn: int = args['layer_dnn']
         self.lr = args['lr']
-        self.len_fingerprint = args['len_fingerprint']
+        self.len_fingerprint: int = args['len_fingerprint']
         self.weight_decay = args['weight_decay']
         self.embed_fingerprint = nn.Embedding(self.len_fingerprint, self.dim)
         self.W_gnn = nn.ModuleList([
             nn.Linear(self.dim, self.dim)
             for _ in range(self.layer_gnn)
         ])
-        # self.conv1 = torch.nn.Conv2d(1, 10, kernel_size = 5)
-        # self.conv2 = torch.nn.Conv2d(10, 20, kernel_size = 5)
-        # self.pooling = torch.nn.MaxPool2d(2)
-        self.dnn = nn.Linear(8943, self.dim)
+        self.dnns = nn.ModuleList([  
+            nn.Linear(8943, 8943)
+            for _ in range(self.layer_dnn - 1)
+        ]).append(nn.Linear(8943, self.dim))
+        
         self.W_out = nn.ModuleList([
             nn.Linear(2*self.dim, 2*self.dim)                        
             for _ in range(self.layer_output)
@@ -40,7 +41,7 @@ class KcatPrediction(nn.Module):
             xs = xs + torch.matmul(A.float(), hs)
         return torch.unsqueeze(torch.mean(xs, 0), 0)
 
-    def forward(self,inputs):
+    def forward(self, inputs):
 
         fingerprints, adjacency, protein_flatten = inputs
         fingerprints = torch.LongTensor(fingerprints).to(self.device)
@@ -52,7 +53,9 @@ class KcatPrediction(nn.Module):
         compound_vector = self.gnn(fingerprint_vectors, adjacency, self.layer_gnn)
 
         """Protein vector with DNN."""
-        protein_flatten = self.dnn(protein_flatten) 
+        for dnn in self.dnns:
+            protein_flatten = dnn(protein_flatten)
+
         protein_flatten = torch.unsqueeze(protein_flatten, 0)
 
         """Concatenate the two vector and output the interaction."""

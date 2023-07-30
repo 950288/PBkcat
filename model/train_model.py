@@ -63,7 +63,6 @@ if __name__ == "__main__":
         print('Epoch: %d / %d' % (epoch + 1, args["epoch"]))
         LOSS_train, RMSE_train, R2_train = trainer.train(dataset_train)
         LOSS_test, RMSE_test, R2_test = tester.test(dataset_dev)
-
         end = timeit.default_timer()
         time = end - start
         MAE = [epoch+1, time, LOSS_train, RMSE_train, R2_train, 
