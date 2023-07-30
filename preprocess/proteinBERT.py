@@ -8,8 +8,8 @@ import json
 
 pretrained_model_generator, input_encoder = load_pretrained_model(local_model_dump_dir = "./preprocess" , local_model_dump_file_name = 'epoch_92400_sample_23500000.pkl')
 
-global_representations = [[]]
-local_representations = [[]]
+global_representations = []
+local_representations = []
 
 with open('./data/Kcat_combination_0918.json', 'r') as infile :
     Kcat_data = json.load(infile)

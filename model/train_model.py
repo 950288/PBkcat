@@ -29,6 +29,10 @@ if __name__ == "__main__":
     fingerprint_dict = model.load_pickle(dir_input + 'fingerprint_dict.pickle')
     args['len_fingerprint'] = len(fingerprint_dict)
     
+    if not (len(compound_fingerprints) == len(adjacencies) == len(proteins)):
+        print('The length of compound_fingerprints, adjacencies and proteins are not equal !!!')
+        exit()
+    
     Kcat = model.load_pickle(dir_input + 'Kcats.pickle')
     Kcat = torch.LongTensor(Kcat)
 
