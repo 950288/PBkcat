@@ -1,8 +1,6 @@
 import model
-import pickle
 import torch
 import random
-import numpy as np
 import timeit
 import json
 
@@ -21,7 +19,7 @@ if __name__ == "__main__":
     }
 
     file_model = './model/output/' + model_name
-    file_MAEs  = './model/output/' + model_name + '-MAEs.txt'
+    file_MAEs  = './model/output/' + model_name + '-MAEs.csv'
     file_args  = './model/output/' + model_name + '-args.json'
 
     dir_input = './data/'
@@ -68,16 +66,20 @@ if __name__ == "__main__":
 
         end = timeit.default_timer()
         time = end - start
-        MAE = [epoch, time, LOSS_train, RMSE_train, R2_train, 
+        MAE = [epoch+1, time, LOSS_train, RMSE_train, R2_train, 
                             LOSS_test,  RMSE_test,  R2_test]
         MAEs.append(MAE)
 
     """Save the trained model."""
-    torch.save(Kcatpredictor.state_dict(), file_model)
+    torch.save(Kcatpredictor.state_dict(), file_model + ".pth")
     print('Model saved to %s' % file_model)
-    """save MAEs"""
+
+    """save MAEs as csv file"""
     with open(file_MAEs, 'w') as f:
-        f.write(str(MAEs) + '\n')
+        f.write('epoch, time, LOSS_train, RMSE_train, R2_train, LOSS_test, RMSE_test, R2_test\n')
+        for MAE in MAEs:
+            f.write(str(MAE)[1:-1] + '\n')
+    print('MAEs saved to %s' % file_MAEs)
 
         
 

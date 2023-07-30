@@ -46,13 +46,11 @@ def extract_fingerprints(atoms, i_jbond_dict, radius):
 
     if (len(atoms) == 1) or (radius == 0):
         fingerprints = [fingerprint_dict[a] for a in atoms]
-
     else:
         nodes = atoms
         i_jedge_dict = i_jbond_dict
 
         for _ in range(radius):
-
             """Update each node ID considering its neighboring nodes and edges
             (i.e., r-radius subgraphs or fingerprints)."""
             fingerprints = []
@@ -61,9 +59,18 @@ def extract_fingerprints(atoms, i_jbond_dict, radius):
                 if not neighbors:
                     fingerprint = (nodes[i], ())  # empty tuple
                 else:
-                    fingerprint = (nodes[i], tuple(sorted(neighbors)))
-                
+                    fingerprint = (nodes[i], tuple([(nodes[j], bond) for j, bond in neighbors]))
                 fingerprints.append(fingerprint_dict[fingerprint])
+            nodes = fingerprints
+
+            """Also update each edge ID considering two nodes on its both sides."""
+            _i_jedge_dict = defaultdict(lambda: [])
+            for i, j_edge in enumerate(i_jedge_dict.values()):
+                for j, edge in j_edge:
+                    both_side = tuple(sorted((nodes[i], nodes[j])))
+                    edge = edge_dict[(both_side, edge)]
+                    _i_jedge_dict[i].append((j, edge))
+            i_jedge_dict = _i_jedge_dict                 
 
     return np.array(fingerprints)
 
@@ -79,35 +86,37 @@ def save_array(array, filename):
     with open(filename, 'wb') as file:
         pickle.dump(array, file)
 
-with open('./data/Kcat_combination_0918.json', 'r') as infile :
-    Kcat_data = json.load(infile)
-    
-compound_fingerprints = list()
-adjacencies = list()
-Kcats = list()
+if __name__ == "__main__":
 
-for data in tqdm.tqdm(Kcat_data) :
-    smiles = data['Smiles']
-    Kcats.append(float(data['Value']))
-    mol = Chem.AddHs(Chem.MolFromSmiles(smiles)) # Add hydrogens
-    atoms = create_atoms(mol) # Get atom features
+    with open('./data/Kcat_combination_0918.json', 'r') as infile :
+        Kcat_data = json.load(infile)
+        
+    compound_fingerprints = list()
+    adjacencies = list()
+    Kcats = list()
 
-    i_jbond_dict = create_ijbonddict(mol) # Get graph structure
-    fingerprints = extract_fingerprints(atoms, i_jbond_dict, radius) # Extract fingerprints
-    compound_fingerprints.append(fingerprints)
+    for data in tqdm.tqdm(Kcat_data) :
+        smiles = data['Smiles']
+        Kcats.append(float(data['Value']))
+        mol = Chem.AddHs(Chem.MolFromSmiles(smiles)) # Add hydrogens
+        atoms = create_atoms(mol) # Get atom features
 
-    adjacency = create_adjacency(mol)
-    adjacencies.append(adjacency)
+        i_jbond_dict = create_ijbonddict(mol) # Get graph structure
+        fingerprints = extract_fingerprints(atoms, i_jbond_dict, radius) # Extract fingerprints
+        compound_fingerprints.append(fingerprints)
 
-save_array(Kcats, './data/Kcats.pickle')
-save_array(compound_fingerprints, './data/compound_fingerprints.pickle')
-save_array(adjacencies, './data/adjacencies.pickle')
-dump_dictionary(atom_dict, './data/atom_dict.pickle')
-dump_dictionary(bond_dict, './data/bond_dict.pickle')
-dump_dictionary(fingerprint_dict, './data/fingerprint_dict.pickle')
-dump_dictionary(edge_dict, './data/edge_dict.pickle')
+        adjacency = create_adjacency(mol)
+        adjacencies.append(adjacency)
 
-print('compound_fingerprints, adjacencies, atom_dict, bond_dict, fingerprint_dict, edge_dict saved successfully!')
+    save_array(Kcats, './data/Kcats.pickle')
+    save_array(compound_fingerprints, './data/compound_fingerprints.pickle')
+    save_array(adjacencies, './data/adjacencies.pickle')
+    dump_dictionary(atom_dict, './data/atom_dict.pickle')
+    dump_dictionary(bond_dict, './data/bond_dict.pickle')
+    dump_dictionary(fingerprint_dict, './data/fingerprint_dict.pickle')
+    dump_dictionary(edge_dict, './data/edge_dict.pickle')
+
+    print('compound_fingerprints, adjacencies, atom_dict, bond_dict, fingerprint_dict, edge_dict saved successfully!')
     
 
 
