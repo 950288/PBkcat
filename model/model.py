@@ -25,9 +25,9 @@ class KcatPrediction(nn.Module):
             for _ in range(self.layer_gnn)
         ])
         self.dnns = nn.ModuleList([  
-            nn.Linear(8943, 8943)
-            for _ in range(self.layer_dnn - 1)
-        ]).append(nn.Linear(8943, self.dim))
+            nn.Linear(96564, 256)
+            # for _ in range(self.layer_dnn - 1)
+        ]).append(nn.Linear(256, self.dim))
         
         self.W_out = nn.ModuleList([
             nn.Linear(2*self.dim, 2*self.dim)                        
@@ -53,9 +53,12 @@ class KcatPrediction(nn.Module):
         compound_vector = self.gnn(fingerprint_vectors, adjacency, self.layer_gnn)
 
         """Protein vector with DNN."""
+        n = nn.Flatten(0, 1)
+        # print(protein_flatten.shape)
+        protein_flatten = torch.flatten(protein_flatten)
+        # print(protein_flatten.shape)
         for dnn in self.dnns:
             protein_flatten = dnn(protein_flatten)
-
         protein_flatten = torch.unsqueeze(protein_flatten, 0)
 
         """Concatenate the two vector and output the interaction."""

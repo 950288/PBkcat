@@ -9,7 +9,7 @@ pretrained_model_generator, input_encoder = load_pretrained_model(local_model_du
 
 local_representations = []
 
-with open('./data/test2.json', 'r') as infile :
+with open('./data/Kcat_combination_0918.json', 'r') as infile :
     Kcat_data = json.load(infile)
 
 def dump_dictionary(dictionary, filename):
