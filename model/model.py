@@ -25,7 +25,8 @@ class KcatPrediction(nn.Module):
             for _ in range(self.layer_gnn)
         ])
         self.dnns = nn.ModuleList([  
-            nn.Linear(96564, 256)
+            nn.Linear(96564, 512),
+            nn.Linear(512, 256),
             # for _ in range(self.layer_dnn - 1)
         ]).append(nn.Linear(256, self.dim))
         
