@@ -8,6 +8,9 @@ import torch.nn.functional as F
 from sklearn.metrics import mean_squared_error,r2_score
 import tqdm
 
+num_filters = 32
+kernel_size = 3
+
 class KcatPrediction(nn.Module):
     def __init__(self, args, device):
         super().__init__()
@@ -23,6 +26,25 @@ class KcatPrediction(nn.Module):
         self.W_gnn = nn.ModuleList([
             nn.Linear(self.dim, self.dim)
             for _ in range(self.layer_gnn)
+        ])
+        self.conv_layers = nn.ModuleList([
+            nn.Conv2d(in_channels=1, out_channels=num_filters, kernel_size=(kernel_size, 26)),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2, 1)),
+            nn.Conv2d(in_channels=num_filters, out_channels=num_filters*2, kernel_size=(kernel_size, 1)),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2, 1))
+        ])
+        
+        input_size = (1585, 26)
+        # Calculate the output size after passing through convolutional layers
+        
+        self.fc_layers = nn.ModuleList([
+            nn.Linear(25216, 512), # 64*394=25216
+            nn.ReLU(),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Linear(256, self.dim)
         ])
         self.dnns = nn.ModuleList([  
             nn.Linear(96564, 512),
@@ -42,27 +64,45 @@ class KcatPrediction(nn.Module):
             xs = xs + torch.matmul(A.float(), hs)
         return torch.unsqueeze(torch.mean(xs, 0), 0)
 
+    def _get_conv_output_size(self, input_size, num_filters, kernel_size):
+        # Calculate the output size after passing through convolutional layers
+        # Assuming padding is 0 and stride is 1
+        conv_output_size = input_size[1] - kernel_size + 1
+        conv_output_size = (conv_output_size - kernel_size + 1) // 2
+        conv_output_size *= num_filters * 2
+        return conv_output_size
+    
     def forward(self, inputs):
 
-        fingerprints, adjacency, protein_flatten = inputs
+        fingerprints, adjacency, protein = inputs
         fingerprints = torch.LongTensor(fingerprints).to(self.device)
         adjacency = torch.FloatTensor(adjacency).to(self.device)
-        protein_flatten = torch.FloatTensor(protein_flatten).to(self.device)
+        protein = torch.FloatTensor(protein).to(self.device)
 
         """Compound vector with GNN."""
         fingerprint_vectors = self.embed_fingerprint(fingerprints)
         compound_vector = self.gnn(fingerprint_vectors, adjacency, self.layer_gnn)
 
-        """Protein vector with DNN."""
-        n = nn.Flatten(0, 1)
+        """Protein vector with CNN."""
+        # print(protein.shape)
+        protein = protein.unsqueeze(0)
+        # print(protein.shape)
+        for layer in self.conv_layers:
+            protein = layer(protein)
+            # print(protein.shape)
+        protein = protein.view(protein.size(0), -1)
+        # print(protein.shape)
+
+        protein_flatten = torch.flatten(protein)
         # print(protein_flatten.shape)
-        protein_flatten = torch.flatten(protein_flatten)
-        # print(protein_flatten.shape)
-        for dnn in self.dnns:
-            protein_flatten = dnn(protein_flatten)
-        protein_flatten = torch.unsqueeze(protein_flatten, 0)
+
+        for layer in self.fc_layers:
+            protein_flatten = layer(protein_flatten)
+            # print(protein_flatten.shape)
+        protein_flatten = protein_flatten.unsqueeze(0)
 
         """Concatenate the two vector and output the interaction."""
+        # print(compound_vector.shape, protein_flatten.shape)
         cat_vector = torch.cat((compound_vector, protein_flatten), 1)
         for j in range(self.layer_output):
             cat_vector = torch.relu(self.W_out[j](cat_vector))
@@ -83,7 +123,7 @@ class Trainer(object):
     def __init__(self, model):
         self.model = model
         self.optimizer = optim.Adam(self.model.parameters(),
-                                    lr=model.lr, weight_decay=model.weight_decay)
+            lr=model.lr, weight_decay=model.weight_decay)
 
     def train(self, dataset):
         loss_total, trainCorrect, trainPredict = 0, [], [] 
