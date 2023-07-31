@@ -1,2 +1,3 @@
 protein-bert
 tqdm
+rdkit
