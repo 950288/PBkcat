@@ -36,11 +36,8 @@ class KcatPrediction(nn.Module):
             nn.MaxPool2d(kernel_size=(2, 1))
         ])
         
-        input_size = (1585, 26)
-        # Calculate the output size after passing through convolutional layers
-        
         self.fc_layers = nn.ModuleList([
-            nn.Linear(25216, 512), # 64*394=25216
+            nn.Linear(59328, 512), # 64*394=25216
             nn.ReLU(),
             nn.Linear(512, 256),
             nn.ReLU(),

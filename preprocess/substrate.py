@@ -36,8 +36,6 @@ def create_ijbonddict(mol):
         i_jbond_dict[j].append((i, bond))
     return i_jbond_dict
 
-
-
 def extract_fingerprints(atoms, i_jbond_dict, radius):
     """Extract the r-radius subgraphs (i.e., fingerprints)
     from a molecular graph using Weisfeiler-Lehman algorithm."""

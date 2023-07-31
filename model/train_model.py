@@ -9,7 +9,7 @@ if __name__ == "__main__":
     model_name = 'Kcat'
 
     args = {
-        "dim" : 10,
+        "dim" : 20,
         "layer_output" : 3,
         "layer_gnn" : 3,
         "layer_dnn" : 3,
