@@ -121,7 +121,7 @@ class Trainer(object):
         self.model = model
         self.optimizer = optim.Adam(self.model.parameters(),
             lr=model.lr, weight_decay=model.weight_decay)
-        self.scheduler1 = MultiStepLR(self.optimizer,[10, 30, 40, 20] , gamma=0.1, last_epoch=-1, verbose=False)
+        self.scheduler1 = MultiStepLR(self.optimizer,[10, 50, 80, 100] , gamma=0.1, last_epoch=-1, verbose=False)
     def train(self, dataset):
         loss_total, trainCorrect, trainPredict = 0, [], [] 
         random.shuffle(dataset)
