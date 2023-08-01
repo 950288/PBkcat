@@ -1,3 +1,4 @@
 protein-bert
+matplotlib
 tqdm
 rdkit
