@@ -64,12 +64,12 @@ if __name__ == "__main__":
     start = timeit.default_timer()
     for epoch in range(0, args["epoch"]):
         print('Epoch: %d / %d' % (epoch + 1, args["epoch"]))
-        LOSS_train, RMSE_train, R2_train = trainer.train(dataset_train)
+        LOSS_train, RMSE_train, R2_train, Lr = trainer.train(dataset_train)
         LOSS_test, RMSE_test, R2_test = tester.test(dataset_dev)
         end = timeit.default_timer()
         time = end - start
         MAE = [epoch+1, time, LOSS_train, RMSE_train, R2_train, 
-                            LOSS_test,  RMSE_test,  R2_test]
+                            LOSS_test,  RMSE_test,  R2_test,  Lr]
         MAEs.append(MAE)
 
     """Save the trained model."""
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     """save MAEs as csv file"""
     with open(file_MAEs, 'w') as f:
-        f.write('epoch,time,LOSS_train,RMSE_train,R2_train,LOSS_test,RMSE_test,R2_test\n')
+        f.write('epoch,time,LOSS_train,RMSE_train,R2_train,LOSS_test,RMSE_test,R2_test,Lr\n')
         for MAE in MAEs:
             f.write(str(MAE)[1:-1] + '\n')
     print('MAEs saved to %s' % file_MAEs)
