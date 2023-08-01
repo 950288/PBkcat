@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     """save MAEs as csv file"""
     with open(file_MAEs, 'w') as f:
-        f.write('epoch, time, LOSS_train, RMSE_train, R2_train, LOSS_test, RMSE_test, R2_test\n')
+        f.write('epoch,time,LOSS_train,RMSE_train,R2_train,LOSS_test,RMSE_test,R2_test\n')
         for MAE in MAEs:
             f.write(str(MAE)[1:-1] + '\n')
     print('MAEs saved to %s' % file_MAEs)
