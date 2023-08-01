@@ -7,6 +7,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from sklearn.metrics import mean_squared_error,r2_score
 import tqdm
+from torch.optim.lr_scheduler import MultiStepLR
 
 num_filters = 32
 kernel_size = 3
@@ -70,7 +71,6 @@ class KcatPrediction(nn.Module):
         return conv_output_size
     
     def forward(self, inputs):
-
         fingerprints, adjacency, protein = inputs
         fingerprints = torch.LongTensor(fingerprints).to(self.device)
         adjacency = torch.FloatTensor(adjacency).to(self.device)
@@ -121,10 +121,10 @@ class Trainer(object):
         self.model = model
         self.optimizer = optim.Adam(self.model.parameters(),
             lr=model.lr, weight_decay=model.weight_decay)
-
+        self.scheduler1 = MultiStepLR(self.optimizer,[10, 30, 40, 20] , gamma=0.1, last_epoch=-1, verbose=False)
     def train(self, dataset):
         loss_total, trainCorrect, trainPredict = 0, [], [] 
-        random.shuffle(dataset)        
+        random.shuffle(dataset)
         self.model.train()
         for data in tqdm.tqdm(dataset):
             self.optimizer.zero_grad()
@@ -136,14 +136,14 @@ class Trainer(object):
             trainCorrect.append(data[3].to(torch.float32))
             trainPredict.append(predicted[0][0].to(torch.float32))
 
+        self.scheduler1.step()
         trainCorrect = torch.stack(trainCorrect).detach().cpu().numpy()
         trainPredict = torch.stack(trainPredict).detach().cpu().numpy()
         rmse_train = np.sqrt(mean_squared_error(trainCorrect, trainPredict))
         r2_train = r2_score(trainCorrect, trainPredict)
-        print('Train RMSE: %.4f , R2: %.4f' %(rmse_train, r2_train))
+        print('Train RMSE: %.4f , R2: %.4f , LR: %.6f' %(rmse_train, r2_train, self.scheduler1.get_last_lr()[0]))
         torch.cuda.empty_cache()
-        return loss_total, rmse_train, r2_train
-
+        return loss_total, rmse_train, r2_train,  self.scheduler1.get_last_lr()
 class Tester(object):
     def __init__(self, model):
         self.model = model
