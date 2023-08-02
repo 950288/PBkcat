@@ -13,7 +13,7 @@ if __name__ == "__main__":
         "layer_output" : 3,
         "layer_gnn" : 3,
         "layer_dnn" : 3,
-        "lr" : 1e-3,
+        "lr" : 1e-4,
         "weight_decay": 1e-6,
         "epoch" : 100
     }
