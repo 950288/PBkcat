@@ -38,7 +38,7 @@ class KcatPrediction(nn.Module):
         ])
         
         self.fc_layers = nn.ModuleList([
-            nn.Linear(59328, 512), # 64*394=25216
+            nn.Linear(25216, 512), # 64*394=25216
             nn.ReLU(),
             nn.Linear(512, 256),
             nn.ReLU(),
@@ -61,14 +61,17 @@ class KcatPrediction(nn.Module):
             hs = torch.relu(self.W_gnn[i](xs))
             xs = xs + torch.matmul(A.float(), hs)
         return torch.unsqueeze(torch.mean(xs, 0), 0)
+    
+    def attention_cnn(self, x, xs, layer):
+        """The attention mechanism is applied to the last layer of CNN."""
+        h = x
+        hs = xs
+        # print(h.shape, hs.shape)
+        weights = torch.tanh(F.linear(h, hs))
+        ys = torch.t(weights) * hs
 
-    def _get_conv_output_size(self, input_size, num_filters, kernel_size):
-        # Calculate the output size after passing through convolutional layers
-        # Assuming padding is 0 and stride is 1
-        conv_output_size = input_size[1] - kernel_size + 1
-        conv_output_size = (conv_output_size - kernel_size + 1) // 2
-        conv_output_size *= num_filters * 2
-        return conv_output_size
+        # return torch.unsqueeze(torch.sum(ys, 0), 0)
+        return torch.unsqueeze(torch.mean(ys, 0), 0)
     
     def forward(self, inputs):
         fingerprints, adjacency, protein = inputs
@@ -91,15 +94,18 @@ class KcatPrediction(nn.Module):
         # print(protein.shape)
 
         protein_flatten = torch.flatten(protein)
-        # print(protein_flatten.shape)
 
         for layer in self.fc_layers:
             protein_flatten = layer(protein_flatten)
             # print(protein_flatten.shape)
         protein_flatten = protein_flatten.unsqueeze(0)
 
+        protein_attention = self.attention_cnn(compound_vector, protein_flatten, 2)
+        protein_flatten = protein_flatten + protein_attention
+
+
+
         """Concatenate the two vector and output the interaction."""
-        # print(compound_vector.shape, protein_flatten.shape)
         cat_vector = torch.cat((compound_vector, protein_flatten), 1)
         for j in range(self.layer_output):
             cat_vector = torch.relu(self.W_out[j](cat_vector))
