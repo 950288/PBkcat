@@ -38,7 +38,7 @@ class KcatPrediction(nn.Module):
         ])
         
         self.fc_layers = nn.ModuleList([
-            nn.Linear(25216, 512), # 64*394=25216
+            nn.Linear(59328, 512), # 64*394=25216
             nn.ReLU(),
             nn.Linear(512, 256),
             nn.ReLU(),
@@ -101,12 +101,12 @@ class KcatPrediction(nn.Module):
         protein_flatten = protein_flatten.unsqueeze(0)
 
         protein_attention = self.attention_cnn(compound_vector, protein_flatten, 2)
-        protein_flatten = protein_flatten + protein_attention
+        # protein_flatten = protein_flatten + protein_attention
 
 
 
         """Concatenate the two vector and output the interaction."""
-        cat_vector = torch.cat((compound_vector, protein_flatten), 1)
+        cat_vector = torch.cat((compound_vector, protein_attention), 1)
         for j in range(self.layer_output):
             cat_vector = torch.relu(self.W_out[j](cat_vector))
         interaction = self.W_interaction(cat_vector)
