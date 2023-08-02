@@ -23,7 +23,7 @@ ax1.legend()
 
 # Create a second Y-axis for Lr values (ax2)
 ax2 = ax1.twinx()
-ax2.plot(epochs, Lr_values, label='Lr', marker='o', linestyle='-', color='yellow')
+ax2.plot(epochs, Lr_values, label='Lr', linestyle='-', color='green')
 ax2.set_ylabel('Lr Value')
 
 # Adjust the Y-axis limits for R2 values
