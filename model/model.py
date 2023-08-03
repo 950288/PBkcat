@@ -19,7 +19,7 @@ class KcatPrediction(nn.Module):
         self.dim: int = args['dim']
         self.layer_output: int = args['layer_output']
         self.layer_gnn: int = args['layer_gnn']
-        self.layer_dnn: int = args['layer_dnn']
+        # self.layer_dnn: int = args['layer_dnn']
         self.lr = args['lr']
         self.len_fingerprint: int = args['len_fingerprint']
         self.weight_decay = args['weight_decay']
@@ -44,11 +44,11 @@ class KcatPrediction(nn.Module):
             nn.ReLU(),
             nn.Linear(256, self.dim)
         ])
-        self.dnns = nn.ModuleList([  
-            nn.Linear(96564, 512),
-            nn.Linear(512, 256),
-            # for _ in range(self.layer_dnn - 1)
-        ]).append(nn.Linear(256, self.dim))
+        # self.dnns = nn.ModuleList([
+        #     nn.Linear(96564, 512),
+        #     nn.Linear(512, 256),
+        #     # for _ in range(self.layer_dnn - 1)
+        # ]).append(nn.Linear(256, self.dim))
         
         self.W_out = nn.ModuleList([
             nn.Linear(2*self.dim, 2*self.dim)                        
@@ -64,13 +64,8 @@ class KcatPrediction(nn.Module):
     
     def attention_cnn(self, x, xs, layer):
         """The attention mechanism is applied to the last layer of CNN."""
-        h = x
-        hs = xs
-        # print(h.shape, hs.shape)
-        weights = torch.tanh(F.linear(h, hs))
-        ys = torch.t(weights) * hs
-
-        # return torch.unsqueeze(torch.sum(ys, 0), 0)
+        weights = torch.tanh(F.linear(x, xs))
+        ys = torch.t(weights) * xs
         return torch.unsqueeze(torch.mean(ys, 0), 0)
     
     def forward(self, inputs):
@@ -84,33 +79,24 @@ class KcatPrediction(nn.Module):
         compound_vector = self.gnn(fingerprint_vectors, adjacency, self.layer_gnn)
 
         """Protein vector with CNN."""
-        # print(protein.shape)
         protein = protein.unsqueeze(0)
-        # print(protein.shape)
         for layer in self.conv_layers:
             protein = layer(protein)
-            # print(protein.shape)
         protein = protein.view(protein.size(0), -1)
-        # print(protein.shape)
 
         protein_flatten = torch.flatten(protein)
 
         for layer in self.fc_layers:
             protein_flatten = layer(protein_flatten)
-            # print(protein_flatten.shape)
         protein_flatten = protein_flatten.unsqueeze(0)
 
         protein_attention = self.attention_cnn(compound_vector, protein_flatten, 2)
-        # protein_flatten = protein_flatten + protein_attention
-
-
 
         """Concatenate the two vector and output the interaction."""
         cat_vector = torch.cat((compound_vector, protein_attention), 1)
         for j in range(self.layer_output):
             cat_vector = torch.relu(self.W_out[j](cat_vector))
         interaction = self.W_interaction(cat_vector)
-
         return interaction
 
 def load_pickle(file_name):
@@ -127,7 +113,8 @@ class Trainer(object):
         self.model = model
         self.optimizer = optim.Adam(self.model.parameters(),
             lr=model.lr, weight_decay=model.weight_decay)
-        self.scheduler1 = MultiStepLR(self.optimizer,[35, 70,100] , gamma=0.1, last_epoch=-1, verbose=False)
+        self.scheduler1 = MultiStepLR(self.optimizer,[35,70,101] , gamma=0.1, last_epoch=-1, verbose=False)
+
     def train(self, dataset):
         loss_total, trainCorrect, trainPredict = 0, [], [] 
         random.shuffle(dataset)
@@ -148,7 +135,7 @@ class Trainer(object):
         rmse_train = np.sqrt(mean_squared_error(trainCorrect, trainPredict))
         r2_train = r2_score(trainCorrect, trainPredict)
         print('Train RMSE: %.4f , R2: %.4f , LR: %.6f' %(rmse_train, r2_train, self.scheduler1.get_last_lr()[0]))
-        torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
         return loss_total, rmse_train, r2_train,  self.scheduler1.get_last_lr()
 class Tester(object):
     def __init__(self, model):
@@ -169,7 +156,7 @@ class Tester(object):
         rmse_test = np.sqrt(mean_squared_error(testCorrect, testPredict))
         r2_test = r2_score(testCorrect, testPredict)
         print('Test RMSE: %.4f , R2: %.4f' %(rmse_test, r2_test))
-        torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
         return loss_total, rmse_test, r2_test
 
 

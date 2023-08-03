@@ -6,7 +6,7 @@ import json
 
 if __name__ == "__main__":
 
-    model_name = 'Kcat'
+    model_name = 'Kcat_833f'
 
     args = {
         "dim" : 20,
@@ -30,13 +30,14 @@ if __name__ == "__main__":
     fingerprint_dict = model.load_pickle(dir_input + 'fingerprint_dict.pickle')
     args['len_fingerprint'] = len(fingerprint_dict)
     Kcat = model.load_pickle(dir_input + 'Kcats.pickle')
-    Kcat = torch.LongTensor(Kcat)
+    Kcat = torch.FloatTensor(Kcat)
 
     if not (len(compound_fingerprints) == len(adjacencies) == len(proteins_local) == len(Kcat)):
         print('The length of compound_fingerprints, adjacencies and proteins are not equal !!!')
         exit()
 
     dataset = list(zip(compound_fingerprints, adjacencies, proteins_local, Kcat))
+    random.seed(233)
     random.shuffle(dataset)
     dataset_train, dataset_ = model.split_dataset(dataset, 0.8)
     dataset_dev, dataset_test = model.split_dataset(dataset_, 0.5)
@@ -65,12 +66,24 @@ if __name__ == "__main__":
     for epoch in range(0, args["epoch"]):
         print('Epoch: %d / %d' % (epoch + 1, args["epoch"]))
         LOSS_train, RMSE_train, R2_train, Lr = trainer.train(dataset_train)
-        LOSS_test, RMSE_test, R2_test = tester.test(dataset_dev)
+        LOSS_dev, RMSE_dev, R2_dev = tester.test(dataset_dev)
         end = timeit.default_timer()
         time = end - start
         MAE = [epoch+1, time, LOSS_train, RMSE_train, R2_train, 
-                            LOSS_test,  RMSE_test,  R2_test,  Lr]
+                            LOSS_dev,  RMSE_dev,  R2_dev,  Lr]
         MAEs.append(MAE)
+
+        if (epoch - 1) % 20 == 0:
+            torch.save(Kcatpredictor.state_dict(), file_model +'_'+ str(epoch) + ".pth")
+        """save MAEs as csv file"""
+        with open(file_MAEs, 'w') as f:
+            f.write('epoch,time,LOSS_train,RMSE_train,R2_dev,LOSS_dev,RMSE_dev,R2_dev,Lr\n')
+            for MAE in MAEs:
+                f.write(str(MAE)[1:-1] + '\n')
+        # print('MAEs saved to %s' % file_MAEs)
+
+    print("on the test set:")
+    LOSS_test, RMSE_test, R2_test = tester.test(dataset_test)
 
     """Save the trained model."""
     torch.save(Kcatpredictor.state_dict(), file_model + ".pth")
@@ -78,7 +91,7 @@ if __name__ == "__main__":
 
     """save MAEs as csv file"""
     with open(file_MAEs, 'w') as f:
-        f.write('epoch,time,LOSS_train,RMSE_train,R2_train,LOSS_test,RMSE_test,R2_test,Lr\n')
+        f.write('epoch,time,LOSS_train,RMSE_train,R2_train,LOSS_dev,RMSE_dev,R2_dev,Lr\n')
         for MAE in MAEs:
             f.write(str(MAE)[1:-1] + '\n')
     print('MAEs saved to %s' % file_MAEs)
