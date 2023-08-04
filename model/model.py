@@ -19,7 +19,6 @@ class KcatPrediction(nn.Module):
         self.dim: int = args['dim']
         self.layer_output: int = args['layer_output']
         self.layer_gnn: int = args['layer_gnn']
-        # self.layer_dnn: int = args['layer_dnn']
         self.lr = args['lr']
         self.len_fingerprint: int = args['len_fingerprint']
         self.weight_decay = args['weight_decay']
@@ -38,17 +37,12 @@ class KcatPrediction(nn.Module):
         ])
         
         self.fc_layers = nn.ModuleList([
-            nn.Linear(59328, 512), # 64*394=25216
+            nn.Linear(59328, 512),
             nn.ReLU(),
             nn.Linear(512, 256),
             nn.ReLU(),
             nn.Linear(256, self.dim)
         ])
-        # self.dnns = nn.ModuleList([
-        #     nn.Linear(96564, 512),
-        #     nn.Linear(512, 256),
-        #     # for _ in range(self.layer_dnn - 1)
-        # ]).append(nn.Linear(256, self.dim))
         
         self.W_out = nn.ModuleList([
             nn.Linear(2*self.dim, 2*self.dim)                        
@@ -62,10 +56,10 @@ class KcatPrediction(nn.Module):
             xs = xs + torch.matmul(A.float(), hs)
         return torch.unsqueeze(torch.mean(xs, 0), 0)
     
-    def attention_cnn(self, x, xs, layer):
-        """The attention mechanism is applied to the last layer of CNN."""
-        weights = torch.tanh(F.linear(x, xs))
-        ys = torch.t(weights) * xs
+    def attention(self, compound_vector, protein_flatten):
+        """The attention mechanism is applied."""
+        weights = torch.tanh(F.linear(compound_vector, protein_flatten))
+        ys = torch.t(weights) * protein_flatten
         return torch.unsqueeze(torch.mean(ys, 0), 0)
     
     def forward(self, inputs):
@@ -90,7 +84,7 @@ class KcatPrediction(nn.Module):
             protein_flatten = layer(protein_flatten)
         protein_flatten = protein_flatten.unsqueeze(0)
 
-        protein_attention = self.attention_cnn(compound_vector, protein_flatten, 2)
+        protein_attention = self.attention(compound_vector, protein_flatten)
 
         """Concatenate the two vector and output the interaction."""
         cat_vector = torch.cat((compound_vector, protein_attention), 1)
@@ -99,21 +93,24 @@ class KcatPrediction(nn.Module):
         interaction = self.W_interaction(cat_vector)
         return interaction
 
+
 def load_pickle(file_name):
     with open(file_name, 'rb') as f:
         return pickle.load(f)
-    
+
+
 def split_dataset(dataset, ratio):
     n = int(ratio * len(dataset))
     dataset_1, dataset_2 = dataset[:n], dataset[n:]
     return dataset_1, dataset_2
+
 
 class Trainer(object):
     def __init__(self, model):
         self.model = model
         self.optimizer = optim.Adam(self.model.parameters(),
             lr=model.lr, weight_decay=model.weight_decay)
-        self.scheduler1 = MultiStepLR(self.optimizer,[35,70,101] , gamma=0.1, last_epoch=-1, verbose=False)
+        self.scheduler1 = MultiStepLR(self.optimizer,[35,70] , gamma=0.1, last_epoch=-1, verbose=False)
 
     def train(self, dataset):
         loss_total, trainCorrect, trainPredict = 0, [], [] 
@@ -137,6 +134,8 @@ class Trainer(object):
         print('Train RMSE: %.4f , R2: %.4f , LR: %.6f' %(rmse_train, r2_train, self.scheduler1.get_last_lr()[0]))
         # torch.cuda.empty_cache()
         return loss_total, rmse_train, r2_train,  self.scheduler1.get_last_lr()
+
+
 class Tester(object):
     def __init__(self, model):
         self.model = model
@@ -158,8 +157,3 @@ class Tester(object):
         print('Test RMSE: %.4f , R2: %.4f' %(rmse_test, r2_test))
         # torch.cuda.empty_cache()
         return loss_total, rmse_test, r2_test
-
-
-        
-
-

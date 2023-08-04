@@ -6,7 +6,7 @@ import json
 
 if __name__ == "__main__":
 
-    model_name = 'Kcat_833f'
+    model_name = 'Kcat'
 
     args = {
         "dim" : 20,
@@ -25,18 +25,18 @@ if __name__ == "__main__":
     dir_input = './data/'
     compound_fingerprints = model.load_pickle(dir_input + 'compound_fingerprints.pickle')
     adjacencies = model.load_pickle(dir_input + 'adjacencies.pickle')
-    proteins_local = model.load_pickle(dir_input + 'local_representations.pickle')
-    # proteins_global = model.load_pickle(dir_input + 'global_representations.pickle')
+    # proteins_local = model.load_pickle(dir_input + 'local_representations.pickle')
+    proteins_global = model.load_pickle(dir_input + 'global_representations.pickle')
     fingerprint_dict = model.load_pickle(dir_input + 'fingerprint_dict.pickle')
     args['len_fingerprint'] = len(fingerprint_dict)
     Kcat = model.load_pickle(dir_input + 'Kcats.pickle')
     Kcat = torch.FloatTensor(Kcat)
 
-    if not (len(compound_fingerprints) == len(adjacencies) == len(proteins_local) == len(Kcat)):
+    if not (len(compound_fingerprints) == len(adjacencies) == len(proteins_global) == len(Kcat)):
         print('The length of compound_fingerprints, adjacencies and proteins are not equal !!!')
         exit()
 
-    dataset = list(zip(compound_fingerprints, adjacencies, proteins_local, Kcat))
+    dataset = list(zip(compound_fingerprints, adjacencies, proteins_global, Kcat))
     random.seed(233)
     random.shuffle(dataset)
     dataset_train, dataset_ = model.split_dataset(dataset, 0.8)
@@ -73,11 +73,11 @@ if __name__ == "__main__":
                             LOSS_dev,  RMSE_dev,  R2_dev,  Lr]
         MAEs.append(MAE)
 
-        if (epoch - 1) % 20 == 0:
+        if (epoch) % 20 == 0:
             torch.save(Kcatpredictor.state_dict(), file_model +'_'+ str(epoch) + ".pth")
-        """save MAEs as csv file"""
+        """save MAEs as csv file every 10 epoch"""
         with open(file_MAEs, 'w') as f:
-            f.write('epoch,time,LOSS_train,RMSE_train,R2_dev,LOSS_dev,RMSE_dev,R2_dev,Lr\n')
+            f.write('epoch,time,LOSS_train,RMSE_train,R2_train,LOSS_dev,RMSE_dev,R2_dev,Lr\n')
             for MAE in MAEs:
                 f.write(str(MAE)[1:-1] + '\n')
         # print('MAEs saved to %s' % file_MAEs)

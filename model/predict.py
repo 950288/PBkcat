@@ -31,19 +31,19 @@ if __name__ == "__main__":
     fingerprint_dict = model.load_pickle(dir_input + 'fingerprint_dict.pickle')
     args['len_fingerprint'] = len(fingerprint_dict)
     Kcat = model.load_pickle(dir_input + 'Kcats.pickle')
-    Kcat = torch.LongTensor(Kcat)
+    Kcat = torch.FloatTensor(Kcat)
 
     if not (len(compound_fingerprints) == len(adjacencies) == len(proteins_local) == len(Kcat)):
         print('The length of compound_fingerprints, adjacencies and proteins are not equal !!!')
         exit()
 
     dataset = list(zip(compound_fingerprints, adjacencies, proteins_local, Kcat))
-    random.seed(2333)
+    random.seed(233)
     random.shuffle(dataset)
     dataset_train, dataset_ = model.split_dataset(dataset, 0.8)
     dataset_dev, dataset_test = model.split_dataset(dataset_, 0.5)
 
-    for data in dataset_train[:100]:
+    for data in dataset_test[:100]:
         pre = Kcatpredictor(data[:3])
         print(pre[0][0], data[3])
 

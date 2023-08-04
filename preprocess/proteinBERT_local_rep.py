@@ -43,6 +43,5 @@ for i in range(0, len(sequences), step):
 
 print(local_representations.shape)
 save_array(local_representations, './data/local_representations.pickle')
-# save_array(local_representations, './data/local_representations.pickle')
 
 print('saved successfully!')

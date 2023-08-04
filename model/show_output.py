@@ -2,11 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Read the CSV file
-data = pd.read_csv('./model/output/Kcat_832f-MAEs.csv')
+data = pd.read_csv('./model/output/Kcat-MAEs.csv')
 
 # Extract the epochs and R2 values from the CSV data
 epochs = data['epoch']
-print(data)
 R2_train = data['R2_train']
 R2_test = data['R2_dev']
 Lr_values = data['Lr']
