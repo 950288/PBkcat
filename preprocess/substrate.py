@@ -27,7 +27,6 @@ def create_ijbonddict(mol):
     """Create a dictionary, which each key is a node ID
     and each value is the tuples of its neighboring node
     and bond (e.g., single and double) IDs."""
-    # bond_dict = defaultdict(lambda: len(bond_dict))
     i_jbond_dict = defaultdict(lambda: [])
     for b in mol.GetBonds():
         i, j = b.GetBeginAtomIdx(), b.GetEndAtomIdx()
@@ -39,8 +38,6 @@ def create_ijbonddict(mol):
 def extract_fingerprints(atoms, i_jbond_dict, radius):
     """Extract the r-radius subgraphs (i.e., fingerprints)
     from a molecular graph using Weisfeiler-Lehman algorithm."""
-
-    # edge_dict = defaultdict(lambda: len(edge_dict))
 
     if (len(atoms) == 1) or (radius == 0):
         fingerprints = [fingerprint_dict[a] for a in atoms]
@@ -73,6 +70,7 @@ def extract_fingerprints(atoms, i_jbond_dict, radius):
     return np.array(fingerprints)
 
 def create_adjacency(mol):
+    """Create a adjacency matrix from a molecular graph."""
     adjacency = Chem.GetAdjacencyMatrix(mol)
     return adjacency
 
@@ -89,10 +87,11 @@ if __name__ == "__main__":
     with open('./data/Kcat_combination_0918.json', 'r') as infile :
         Kcat_data = json.load(infile)
         
-    compound_fingerprints = list()
-    adjacencies = list()
-    Kcats = list()
+    compound_fingerprints = []
+    adjacencies = []
+    Kcats = []
 
+    """Get the fingerprints and adjacency matrix of each compound."""
     for data in tqdm.tqdm(Kcat_data) :
         smiles = data['Smiles']
         Kcats.append(float(data['Value']))

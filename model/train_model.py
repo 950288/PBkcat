@@ -6,8 +6,10 @@ import json
 
 if __name__ == "__main__":
 
+    """model_name used to save the model and MAEs"""
     model_name = 'Kcat'
 
+    """hyperparameters"""
     args = {
         "dim" : 20,
         "layer_output" : 3,
@@ -18,11 +20,13 @@ if __name__ == "__main__":
         "epoch" : 100
     }
 
+    """dirs used to save the model and MAEs"""
     file_model = './model/output/' + model_name
     file_MAEs  = './model/output/' + model_name + '-MAEs.csv'
     file_args  = './model/output/' + model_name + '-args.json'
 
     dir_input = './data/'
+    """load data"""
     compound_fingerprints = model.load_pickle(dir_input + 'compound_fingerprints.pickle')
     adjacencies = model.load_pickle(dir_input + 'adjacencies.pickle')
     proteins_local = model.load_pickle(dir_input + 'local_representations.pickle')
@@ -32,6 +36,7 @@ if __name__ == "__main__":
     Kcat = model.load_pickle(dir_input + 'Kcats.pickle')
     Kcat = torch.FloatTensor(Kcat)
 
+    """check the length of the data"""
     if not (len(compound_fingerprints) == len(adjacencies) == len(proteins_local) == len(Kcat)):
         print('The length of compound_fingerprints, adjacencies and proteins are not equal !!!')
         exit()
@@ -39,6 +44,7 @@ if __name__ == "__main__":
     dataset = list(zip(compound_fingerprints, adjacencies, proteins_local, Kcat))
     random.seed(233)
     random.shuffle(dataset)
+    """split the dataset into train, dev and test set"""
     dataset_train, dataset_ = model.split_dataset(dataset, 0.8)
     dataset_dev, dataset_test = model.split_dataset(dataset_, 0.5)
 
@@ -50,19 +56,21 @@ if __name__ == "__main__":
         device = torch.device('cpu')
         print('The code uses CPU !!!')
 
-    torch.manual_seed(random.randint(1, 10000))
+    # torch.manual_seed(random.randint(1, 10000))
     Kcatpredictor = model.KcatPrediction(args, device).to(device)
     trainer = model.Trainer(Kcatpredictor)
     tester = model.Tester(Kcatpredictor)
 
-    """Output files."""
+    """ Output files"""
     with open(file_args, 'w') as f:
         f.write(str(json.dumps(args)) + '\n')
 
-    """Start training."""
+    """ Start training """
     print('Training...')
     MAEs = []
     start = timeit.default_timer()
+
+    """ training and testing """
     for epoch in range(0, args["epoch"]):
         print('Epoch: %d / %d' % (epoch + 1, args["epoch"]))
         LOSS_train, RMSE_train, R2_train, Lr = trainer.train(dataset_train)
@@ -73,15 +81,16 @@ if __name__ == "__main__":
                             LOSS_dev,  RMSE_dev,  R2_dev,  Lr]
         MAEs.append(MAE)
 
+        """save model and MAEs every 20 epoch"""
         if (epoch) % 20 == 0:
             torch.save(Kcatpredictor.state_dict(), file_model +'_'+ str(epoch) + ".pth")
-        """save MAEs as csv file every 10 epoch"""
         with open(file_MAEs, 'w') as f:
             f.write('epoch,time,LOSS_train,RMSE_train,R2_train,LOSS_dev,RMSE_dev,R2_dev,Lr\n')
             for MAE in MAEs:
                 f.write(str(MAE)[1:-1] + '\n')
         # print('MAEs saved to %s' % file_MAEs)
 
+    """after training, test on the test set"""
     print("on the test set:")
     LOSS_test, RMSE_test, R2_test = tester.test(dataset_test)
 

@@ -5,6 +5,7 @@ import numpy as np
 import pickle
 import json
 
+"""load the pretrained model"""
 pretrained_model_generator, input_encoder = load_pretrained_model(local_model_dump_dir = "./preprocess" , local_model_dump_file_name = 'epoch_92400_sample_23500000.pkl')
 
 global_representations = []
@@ -31,6 +32,7 @@ max_len += 2
 model = pretrained_model_generator.create_model(max_len)
 
 step = 256
+"""use the pretrained model to get the global representations of the proteins"""
 for i in range(0, len(sequences), step):
     print(i, '/' , len(sequences))
     sequences_ = sequences[i:i+step]
@@ -41,7 +43,7 @@ for i in range(0, len(sequences), step):
     else:
         global_representations = global_representations_
 
-print(global_representations.shape)
+# print(global_representations.shape)
 save_array(global_representations, './data/global_representations.pickle')
 
 print('saved successfully!')
