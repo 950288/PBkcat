@@ -2,3 +2,4 @@ protein-bert
 matplotlib
 tqdm
 rdkit
+torch
