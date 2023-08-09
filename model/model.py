@@ -48,7 +48,6 @@ class KcatPrediction(nn.Module):
             nn.ReLU(),
             nn.Linear(256, self.dim)
         ])
-        
         """The output layers."""
         self.W_out = nn.ModuleList([
             nn.Linear(2*self.dim, 2*self.dim)                        
