@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Read the CSV file
-data = pd.read_csv('./model/output/Kcat-MAEs.csv')
+data = pd.read_csv('./model/output/Kcat_810-MAEs.csv')
 
 # Extract the epochs and R2 values from the CSV data
 epochs = data['epoch']

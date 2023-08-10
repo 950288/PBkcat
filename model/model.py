@@ -31,18 +31,25 @@ class KcatPrediction(nn.Module):
             nn.Linear(self.dim, self.dim)
             for _ in range(self.layer_gnn)
         ])
-        """The CNN layers."""
-        self.conv_layers = nn.ModuleList([
-            nn.Conv2d(in_channels=1, out_channels=num_filters, kernel_size=(kernel_size, 26)),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=(2, 1)),
-            nn.Conv2d(in_channels=num_filters, out_channels=num_filters*2, kernel_size=(kernel_size, 1)),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=(2, 1))
-        ])
+        # """The CNN layers."""
+        # self.conv_layers = nn.ModuleList([
+        #     nn.Conv2d(in_channels=1, out_channels=num_filters, kernel_size=(kernel_size, 26)),
+        #     nn.ReLU(),
+        #     nn.MaxPool2d(kernel_size=(2, 1)),
+        #     nn.Conv2d(in_channels=num_filters, out_channels=num_filters*2, kernel_size=(kernel_size, 1)),
+        #     nn.ReLU(),
+        #     nn.MaxPool2d(kernel_size=(2, 1))
+        # ])
         """The FC layers."""
-        self.fc_layers = nn.ModuleList([
-            nn.Linear(59328, 512),
+        self.fc_layers_global = nn.ModuleList([
+            nn.Linear(96564, 512),
+            nn.ReLU(),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Linear(256, self.dim)
+        ])
+        self.fc_layers_local = nn.ModuleList([
+            nn.Linear(96564, 512),
             nn.ReLU(),
             nn.Linear(512, 256),
             nn.ReLU(),
@@ -71,31 +78,30 @@ class KcatPrediction(nn.Module):
         return torch.unsqueeze(torch.mean(ys, 0), 0)
     
     def forward(self, inputs):
-        fingerprints, adjacency, protein = inputs
+        fingerprints, adjacency, proteins_local, proteins_global = inputs
         fingerprints = torch.LongTensor(fingerprints).to(self.device)
         adjacency = torch.FloatTensor(adjacency).to(self.device)
-        protein = torch.FloatTensor(protein).to(self.device)
+        proteins_local = torch.FloatTensor(proteins_local).to(self.device)
+        proteins_global = torch.FloatTensor(proteins_global).to(self.device)
 
         """Compound vector with GNN."""
         fingerprint_vectors = self.embed_fingerprint(fingerprints)
         compound_vector = self.gnn(fingerprint_vectors, adjacency, self.layer_gnn)
 
-        """Protein vector with CNN."""
-        protein = protein.unsqueeze(0)
-        # """The protein vector is reshaped to fit the input of CNN."""
-        # for layer in self.conv_layers:
-        #     protein = layer(protein)
-        # protein = protein.view(protein.size(0), -1)
+        """Protein_local vectors with FC."""
+        proteins_local = torch.flatten(proteins_local.unsqueeze(0))
+        for layer in self.fc_layers_local:
+            proteins_local = layer(proteins_local)
+        proteins_local = proteins_local.unsqueeze(0)
 
-        """Protein vector with FC."""
-        protein_flatten = torch.flatten(protein)
-        print(protein_flatten.shape)
-        for layer in self.fc_layers:
-            protein_flatten = layer(protein_flatten)
-        protein_flatten = protein_flatten.unsqueeze(0)
+        """Protein_global vectors with FC."""
+        # proteins_global = torch.flatten(proteins_local.unsqueeze(0))
+        # for layer in self.fc_layers_global:
+        #     proteins_global = layer(proteins_global)
+        # proteins_global = proteins_global.unsqueeze(0)
 
         """The attention mechanism is applied."""
-        protein_attention = self.attention(compound_vector, protein_flatten)
+        protein_attention = self.attention(compound_vector, proteins_local)
 
         """Concatenate the two vector and output the interaction."""
         cat_vector = torch.cat((compound_vector, protein_attention), 1)
@@ -131,12 +137,12 @@ class Trainer(object):
         self.model.train()
         for data in tqdm.tqdm(dataset):
             self.optimizer.zero_grad()
-            predicted = self.model(data[:3])
-            loss = F.mse_loss(predicted[0][0].to(torch.float32), data[3].to(torch.float32).to(self.model.device))
+            predicted = self.model(data[:4])
+            loss = F.mse_loss(predicted[0][0].to(torch.float32), data[4].to(torch.float32).to(self.model.device))
             loss_total += loss.item()
             loss.backward()
             self.optimizer.step()
-            trainCorrect.append(data[3].to(torch.float32))
+            trainCorrect.append(data[4].to(torch.float32))
             trainPredict.append(predicted[0][0].to(torch.float32))
 
         """The learning rate decay scheduler."""
@@ -158,10 +164,10 @@ class Tester(object):
         loss_total, testCorrect, testPredict = 0, [], [] 
         self.model.eval()
         for data in tqdm.tqdm(dataset):
-            predicted = self.model(data[:3])
-            loss = F.mse_loss(predicted[0][0].to(torch.float32), data[3].to(torch.float32).to(self.model.device))
+            predicted = self.model(data[:4])
+            loss = F.mse_loss(predicted[0][0].to(torch.float32), data[4].to(torch.float32).to(self.model.device))
             loss_total += loss.item()
-            testCorrect.append(data[3].to(torch.float32))
+            testCorrect.append(data[4].to(torch.float32))
             testPredict.append(predicted[0][0].to(torch.float32))
 
         testCorrect = torch.stack(testCorrect).detach().cpu().numpy()

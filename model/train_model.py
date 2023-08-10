@@ -18,7 +18,7 @@ if __name__ == "__main__":
         "layer_dnn" : 3,
         "lr" : 1e-4,
         "weight_decay": 1e-6,
-        "epoch" : 100
+        "epoch" : 100,
         "random_seed" : 810,
     }
 
@@ -31,18 +31,18 @@ if __name__ == "__main__":
     """load data"""
     compound_fingerprints = model.load_pickle(dir_input + 'compound_fingerprints.pickle')
     adjacencies = model.load_pickle(dir_input + 'adjacencies.pickle')
-    proteins_representations = model.load_pickle(dir_input + 'local_representations.pickle') # in shape of (n_proteins, 20, 20)
-    # proteins_representations = model.load_pickle(dir_input + 'global_representations.pickle') # in shape of (n_proteins, 20, 20)
+    proteins_local = model.load_pickle(dir_input + 'local_representations.pickle') # in shape of (n_proteins, 20, 20)
+    proteins_global = model.load_pickle(dir_input + 'global_representations.pickle') # in shape of (n_proteins, 20, 20)
     fingerprint_dict = model.load_pickle(dir_input + 'fingerprint_dict.pickle')
     args['len_fingerprint'] = len(fingerprint_dict)
     Kcat = torch.FloatTensor(model.load_pickle(dir_input + 'Kcats.pickle'))
 
     """check the length of the data"""
-    if not (len(compound_fingerprints) == len(adjacencies) == len(proteins_representations) == len(Kcat)):
+    if not (len(compound_fingerprints) == len(adjacencies) == len(proteins_local) == len(proteins_global) == len(Kcat)):
         print('The length of compound_fingerprints, adjacencies and proteins are not equal !!!')
         exit()
 
-    dataset = list(zip(compound_fingerprints, adjacencies, proteins_representations, Kcat))
+    dataset = list(zip(compound_fingerprints, adjacencies, proteins_local, proteins_global, Kcat))
     random.seed(args["random_seed"])
     random.shuffle(dataset)
     """split the dataset into train, dev and test set"""
@@ -104,8 +104,5 @@ if __name__ == "__main__":
         for MAE in MAEs:
             f.write(str(MAE)[1:-1] + '\n')
     print('MAEs saved to %s' % file_MAEs)
-
-        
-
 
 
