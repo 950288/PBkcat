@@ -82,14 +82,16 @@ class KcatPrediction(nn.Module):
 
         """Protein vector with CNN."""
         protein = protein.unsqueeze(0)
-        """The protein vector is reshaped to fit the input of CNN."""
-        for layer in self.conv_layers:
-            protein = layer(protein)
-        protein = protein.view(protein.size(0), -1)
+        # """The protein vector is reshaped to fit the input of CNN."""
+        # for layer in self.conv_layers:
+        #     protein = layer(protein)
+        # protein = protein.view(protein.size(0), -1)
 
         """Protein vector with FC."""
+        protein_flatten = torch.flatten(protein)
+        print(protein_flatten.shape)
         for layer in self.fc_layers:
-            protein_flatten = layer(torch.flatten(protein))
+            protein_flatten = layer(protein_flatten)
         protein_flatten = protein_flatten.unsqueeze(0)
 
         """The attention mechanism is applied."""
