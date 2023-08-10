@@ -88,8 +88,9 @@ class KcatPrediction(nn.Module):
         protein = protein.view(protein.size(0), -1)
 
         """Protein vector with FC."""
+        protein_flatten = torch.flatten(protein)
         for layer in self.fc_layers:
-            protein_flatten = layer(torch.flatten(protein))
+            protein_flatten = layer(protein_flatten)
         protein_flatten = protein_flatten.unsqueeze(0)
 
         """The attention mechanism is applied."""

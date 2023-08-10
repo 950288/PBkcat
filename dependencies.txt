@@ -3,3 +3,4 @@ matplotlib
 tqdm
 rdkit
 torch
+scikit-learn
