@@ -7,7 +7,8 @@ import json
 if __name__ == "__main__":
 
     """model_name used to save the model and MAEs"""
-    model_name = 'Kcat'
+
+    model_name = 'Kcat_810'
 
     """hyperparameters"""
     args = {
@@ -18,6 +19,7 @@ if __name__ == "__main__":
         "lr" : 1e-4,
         "weight_decay": 1e-6,
         "epoch" : 100
+        "random_seed" : 810,
     }
 
     """dirs used to save the model and MAEs"""
@@ -29,20 +31,19 @@ if __name__ == "__main__":
     """load data"""
     compound_fingerprints = model.load_pickle(dir_input + 'compound_fingerprints.pickle')
     adjacencies = model.load_pickle(dir_input + 'adjacencies.pickle')
-    proteins_local = model.load_pickle(dir_input + 'local_representations.pickle')
-    # proteins_global = model.load_pickle(dir_input + 'global_representations.pickle')
+    proteins_representations = model.load_pickle(dir_input + 'local_representations.pickle') # in shape of (n_proteins, 20, 20)
+    # proteins_representations = model.load_pickle(dir_input + 'global_representations.pickle') # in shape of (n_proteins, 20, 20)
     fingerprint_dict = model.load_pickle(dir_input + 'fingerprint_dict.pickle')
     args['len_fingerprint'] = len(fingerprint_dict)
-    Kcat = model.load_pickle(dir_input + 'Kcats.pickle')
-    Kcat = torch.FloatTensor(Kcat)
+    Kcat = torch.FloatTensor(model.load_pickle(dir_input + 'Kcats.pickle'))
 
     """check the length of the data"""
-    if not (len(compound_fingerprints) == len(adjacencies) == len(proteins_local) == len(Kcat)):
+    if not (len(compound_fingerprints) == len(adjacencies) == len(proteins_representations) == len(Kcat)):
         print('The length of compound_fingerprints, adjacencies and proteins are not equal !!!')
         exit()
 
-    dataset = list(zip(compound_fingerprints, adjacencies, proteins_local, Kcat))
-    random.seed(233)
+    dataset = list(zip(compound_fingerprints, adjacencies, proteins_representations, Kcat))
+    random.seed(args["random_seed"])
     random.shuffle(dataset)
     """split the dataset into train, dev and test set"""
     dataset_train, dataset_ = model.split_dataset(dataset, 0.8)
@@ -56,7 +57,6 @@ if __name__ == "__main__":
         device = torch.device('cpu')
         print('The code uses CPU !!!')
 
-    # torch.manual_seed(random.randint(1, 10000))
     Kcatpredictor = model.KcatPrediction(args, device).to(device)
     trainer = model.Trainer(Kcatpredictor)
     tester = model.Tester(Kcatpredictor)
