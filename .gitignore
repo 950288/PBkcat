@@ -4,3 +4,4 @@ data/*.pickle
 model/__pycache__/model.cpython-311.pyc
 model/output/Kcat
 model/output/*.pth
+model/__pycache__/*
