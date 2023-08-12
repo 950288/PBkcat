@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
     """model_name used to save the model and MAEs"""
 
-    model_name = 'Kcat_811'
+    model_name = 'Kcat_8112'
 
     """hyperparameters"""
     args = {

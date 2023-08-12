@@ -31,23 +31,7 @@ class KcatPrediction(nn.Module):
             nn.Linear(self.dim, self.dim)
             for _ in range(self.layer_gnn)
         ])
-        # """The CNN layers."""
-        # self.conv_layers = nn.ModuleList([
-        #     nn.Conv2d(in_channels=1, out_channels=num_filters, kernel_size=(kernel_size, 26)),
-        #     nn.ReLU(),
-        #     nn.MaxPool2d(kernel_size=(2, 1)),
-        #     nn.Conv2d(in_channels=num_filters, out_channels=num_filters*2, kernel_size=(kernel_size, 1)),
-        #     nn.ReLU(),
-        #     nn.MaxPool2d(kernel_size=(2, 1))
-        # ])
         """The FC layers."""
-        self.fc_layers_global = nn.ModuleList([
-            nn.Linear(96564, 512),
-            nn.ReLU(),
-            nn.Linear(512, 256),
-            nn.ReLU(),
-            nn.Linear(256, self.dim)
-        ])
         self.fc_layers_local = nn.ModuleList([
             nn.Linear(96564, 512),
             nn.ReLU(),
@@ -55,13 +39,18 @@ class KcatPrediction(nn.Module):
             nn.ReLU(),
             nn.Linear(256, self.dim)
         ])
+        self.fc_layers_global = nn.ModuleList([
+            nn.Linear(8943, 2048),
+            nn.ReLU(),
+            nn.Linear(2048, self.dim)
+        ])
         """The output layers."""
         self.W_out = nn.ModuleList([
-            nn.Linear(2*self.dim, 2*self.dim)                        
+            nn.Linear(3*self.dim, 3*self.dim)                        
             for _ in range(self.layer_output)
         ])
         """The output layer to predict the interaction."""
-        self.W_interaction = nn.Linear(2*self.dim, 1)
+        self.W_interaction = nn.Linear(3*self.dim, 1)
 
     """The GNN layer."""
     def gnn(self, xs, A, layer):
@@ -95,16 +84,16 @@ class KcatPrediction(nn.Module):
         proteins_local = proteins_local.unsqueeze(0)
 
         """Protein_global vectors with FC."""
-        # proteins_global = torch.flatten(proteins_local.unsqueeze(0))
-        # for layer in self.fc_layers_global:
-        #     proteins_global = layer(proteins_global)
-        # proteins_global = proteins_global.unsqueeze(0)
+        proteins_global = torch.flatten(proteins_global.unsqueeze(0))
+        for layer in self.fc_layers_global:
+            proteins_global = layer(proteins_global)
+        proteins_global = proteins_global.unsqueeze(0)
 
         """The attention mechanism is applied."""
         protein_attention = self.attention(compound_vector, proteins_local)
 
         """Concatenate the two vector and output the interaction."""
-        cat_vector = torch.cat((compound_vector, protein_attention), 1)
+        cat_vector = torch.cat((compound_vector, protein_attention, protein_attention), 1)
         """The output layers for interaction prediction."""
         for j in range(self.layer_output):
             cat_vector = torch.relu(self.W_out[j](cat_vector))
