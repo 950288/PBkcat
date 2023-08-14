@@ -23,6 +23,7 @@ class KcatPrediction(nn.Module):
         self.lr = args['lr']
         self.len_fingerprint: int = args['len_fingerprint']
         self.weight_decay = args['weight_decay']
+        self.lrStep = args['lr_step']
 
         """The embedding layer of compound fingerprint."""
         self.embed_fingerprint = nn.Embedding(self.len_fingerprint, self.dim)
@@ -34,15 +35,15 @@ class KcatPrediction(nn.Module):
         """The FC layers."""
         self.fc_layers_local = nn.ModuleList([
             nn.Linear(96564, 512),
+            # nn.ReLU(),
+            # nn.Linear(512, 256),
             nn.ReLU(),
-            nn.Linear(512, 256),
-            nn.ReLU(),
-            nn.Linear(256, self.dim)
+            nn.Linear(512, self.dim)
         ])
         self.fc_layers_global = nn.ModuleList([
-            nn.Linear(8943, 2048),
+            nn.Linear(8943, 10),
             nn.ReLU(),
-            nn.Linear(2048, self.dim)
+            nn.Linear(10, self.dim)
         ])
         """The output layers."""
         self.W_out = nn.ModuleList([
@@ -118,7 +119,7 @@ class Trainer(object):
         self.optimizer = optim.Adam(self.model.parameters(),
             lr=model.lr, weight_decay=model.weight_decay)
         """The learning rate decay scheduler."""
-        self.scheduler1 = MultiStepLR(self.optimizer,[35,70] , gamma=0.1, last_epoch=-1, verbose=False)
+        self.scheduler1 = MultiStepLR(self.optimizer,self.model.lrStep , gamma=0.1, last_epoch=-1, verbose=False)
 
     def train(self, dataset):
         loss_total, trainCorrect, trainPredict = 0, [], [] 

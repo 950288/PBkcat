@@ -8,11 +8,11 @@ if __name__ == "__main__":
 
     """model_name used to save the model and MAEs"""
 
-    model_name = 'Kcat_8112'
+    model_name = 'Kcat_814'
 
     """hyperparameters"""
     args = {
-        "dim" : 20,
+        "dim" : 10,
         "layer_output" : 3,
         "layer_gnn" : 3,
         "layer_dnn" : 3,
@@ -20,6 +20,7 @@ if __name__ == "__main__":
         "weight_decay": 1e-6,
         "epoch" : 100,
         "random_seed" : 810,
+        "lr_step": [35,70]
     }
 
     """dirs used to save the model and MAEs"""
